@@ -4,4 +4,10 @@ const config = {
     debug: true,
     graphicAnchorId: "svg_out",
     formAnchorId: "form",
+    diagramSettings: {
+        paddingTopBottom: 20,
+        paddingSide: 20,
+        conductorSize: 20,
+        playerSize: 10,
+    }
 };

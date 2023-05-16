@@ -1,0 +1,10 @@
+.OGG_circle {
+    stroke: black;
+    stroke-width: 2px;
+    fill: none;
+}
+
+.OGG_dot {
+    fill: red;
+    stroke: none;
+}
