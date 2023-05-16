@@ -6,10 +6,10 @@ const config: I_Config = {
     graphicAnchorId: "svg_out",
     formAnchorId: "form",
     diagramSettings: {
-        paddingTopBottom: 20,
-        paddingSide: 20,
+        paddingTopBottom: 30,
+        paddingSide: 30,
         conductorSize: 20,
         playerSize: 10,
-        registerPadding: 20,
+        registerPadding: 25,
     },
 };

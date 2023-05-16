@@ -7,8 +7,8 @@ class DiagramGenerator {
         this.settings = settings;
         this.svg = new SVGGenerator(config.graphicAnchorId);
         this.calculateSize();
-        this.drawCircles();
         for (let r of this.settings.rows) this.drawRegisters(r);
+        this.drawCircles();
         this.drawConductor();
     }
 
@@ -49,6 +49,17 @@ class DiagramGenerator {
             borderAngles.push(tempAngle);
         }
         if (config.debug) console.log(borderAngles);
+        for(let i = 0; i < borderAngles.length - 1; i++) {
+            let rO = row.radius + config.diagramSettings.registerPadding;
+            let rI = row.radius - config.diagramSettings.registerPadding;
+            let p1 = this.findCoordinatesFromAngle(borderAngles[i], rO);
+            let p2 = this.findCoordinatesFromAngle(borderAngles[i + 1], rO);
+            let p3 = this.findCoordinatesFromAngle(borderAngles[i + 1], rI);
+            let p4 = this.findCoordinatesFromAngle(borderAngles[i], rI);
+            let d = `M${p1.x} ${p1.y} A${rO} ${rO} 0 0 1 ${p2.x} ${p2.y} 
+                L${p3.x} ${p3.y} A${rI} ${rI} 0 0 0 ${p4.x} ${p4.y} Z`;
+            this.svg.addPath(d, "OGG_bordered");
+        }
         for(let angle of playerAngles) {
             let position = this.findCoordinatesFromAngle(angle, row.radius);
             this.svg.addCircle(position.x, position.y, config.diagramSettings.playerSize, "OGG_dot");
