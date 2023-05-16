@@ -1,82 +1,10 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Numbers Game</title>
+        <title>Orchestration Graphic Generator</title>
         <meta charset="UTF-8" />
         <script src="./build/build.js"></script>
         <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css" />
     </head>
-    <body>
-        <div class="w3-row">
-            <div class="w3-half">
-                <div class="w3-container w3-margin-bottom" id="game_svg"></div>
-            </div>
-            <div class="w3-half">
-                <div class="w3-red w3-card w3-margin" id="textout"></div>
-                <div class="w3-container w3-margin-bottom" id="aiOptions">
-                    Startvalues: <input type="text" id="startvalues" /> (Enter as: "1,2,3,4" or "1 2 3 4")(Values 0-9)<br />
-                    <input type="checkbox" id="autoDeleteRows" value="true" /> Automatically delete empty Rows
-                </div>
-                <div class="w3-container w3-margin-bottom" id="aiChoose">
-                    AI: 
-                    <select id="selectedAI" name="aiChoose">
-                        <option value="" disabled selected>Please choose</option>
-                        <option value="first_found">First Found</option>
-                        <option value="weighed">Weighed</option>
-                        <option value="tree">Tree</option>
-                    </select>
-                    <button type="submit" onclick="selectAI()">Generate</button>
-                </div>
-                <hr>
-                <div class="w3-container w3-margin-bottom" id="aiControlls">
-                    <button onclick="aiStep()">Run AI step</button>
-                    <button onclick="deleteRows()">Delete Empty Rows</button>
-                    <input type="checkbox" id="autoAI" name="autoAI" value="run" />Run AI automatically |
-                    <input type="checkbox" id="slowAutoAI" />Slow | 
-                    <input type="checkbox" id="noSVG" />No Rendering
-                </div>
-                <hr>
-                <div class="w3-container w3-margin-bottom" id="statistics">
-                    <h1>Statistics:</h1>
-                    <div class="w3-row">
-                        <div class="w3-half">
-                            <table class="w3-table-all">
-                                <tr>
-                                    <td>Current rows</td>
-                                    <td><span id="currentRows"></span></td>
-                                </tr>
-                                <tr>
-                                    <td>Deleted rows</td>
-                                    <td><span id="delRows"></span></td>
-                                </tr>
-                                <tr>
-                                    <td>Check called</td>
-                                    <td><span id="callCheck"></span></td>
-                                </tr>
-                                <tr>
-                                    <td>Crossed elements</td>
-                                    <td><span id="crossedElements"></span></td>
-                                </tr>
-                                <tr>
-                                    <td>Cross called</td>
-                                    <td><span id="crossCall"></span></td>
-                                </tr>
-                                <tr>
-                                    <td>Neighbor search called</td>
-                                    <td><span id="neighborSearch"></span></td>
-                                </tr>
-                                <tr>
-                                    <td>Shuffled</td>
-                                    <td><span id="shuffled"></span></td>
-                                </tr>
-                            </table>
-                        </div>
-                        <div class="w3-half">
-                            <table class="w3-table-all" id="numberTable"></table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </body>
+    <body></body>
 </html>
