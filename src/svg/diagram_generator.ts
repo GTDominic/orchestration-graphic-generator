@@ -2,13 +2,14 @@ class DiagramGenerator {
     private settings: I_Settings;
     private svg: SVGGenerator;
     private center: { x: number; y: number };
+    private currentColor: number = 0;
 
     constructor(settings: I_Settings) {
         this.settings = settings;
         this.svg = new SVGGenerator(config.graphicAnchorId);
         this.calculateSize();
         for (let r of this.settings.rows) this.drawRegisters(r);
-        this.drawCircles();
+        if (config.debug && config.diagramSettings.drawCircles) this.drawCircles();
         this.drawConductor();
     }
 
@@ -58,7 +59,10 @@ class DiagramGenerator {
             let p4 = this.findCoordinatesFromAngle(borderAngles[i], rI);
             let d = `M${p1.x} ${p1.y} A${rO} ${rO} 0 0 1 ${p2.x} ${p2.y} 
                 L${p3.x} ${p3.y} A${rI} ${rI} 0 0 0 ${p4.x} ${p4.y} Z`;
-            this.svg.addPath(d, "OGG_bordered");
+            let color = config.diagramSettings.colors[this.currentColor];
+            this.currentColor++;
+            if (this.currentColor === config.diagramSettings.colors.length) this.currentColor = 0;
+            this.svg.addPath(d, "OGG_registerBack", `fill: ${color}`);
         }
         for(let angle of playerAngles) {
             let position = this.findCoordinatesFromAngle(angle, row.radius);

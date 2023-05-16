@@ -11,6 +11,8 @@ interface I_Config {
         conductorSize: number;
         playerSize: number;
         registerPadding: number;
+        drawCircles: boolean;
+        colors: Array<string>;
     };
 }
 
