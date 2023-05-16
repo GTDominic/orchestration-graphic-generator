@@ -1,17 +1,18 @@
 let G_settings: I_Settings = {
     rows: [],
-    dirPos: 0,
+    conductorPos: 0,
 };
 
 interface I_Settings {
     rows: Array<I_RowSettings>;
-    dirPos: number;
+    conductorPos: number;
 }
 
 interface I_RowSettings {
     radius: number;
     leftAngle: number;
     rightAngle: number;
+    sync: boolean;
     registers: Array<I_RegisterSettings>;
 }
 
