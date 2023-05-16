@@ -10,6 +10,10 @@ class SVGGenerator {
         this.addElement("circle", { cx, cy, r, class: cssClass, style });
     }
 
+    public addPath(d: string, cssClass: string, style: string = ""): void {
+        this.addElement("path", { d, class: cssClass, style });
+    }
+
     public setSize(width: number, height: number): void {
         this.setAttr(this.svg, { width, height });
     }

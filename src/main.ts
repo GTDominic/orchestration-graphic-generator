@@ -1,6 +1,8 @@
 let form: FormGenerator;
 
 function OG_main(): void {
+    // Disable debug if not in dev environment
+    if (config.environment !== "dev") config.debug = false;
     form = new FormGenerator(G_settings);
 }
 
