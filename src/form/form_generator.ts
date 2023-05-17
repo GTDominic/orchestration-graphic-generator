@@ -12,7 +12,7 @@ class FormGenerator {
         for (let i = 0; i < this.settings.rows.length; i++) form += this.drawRow(i);
         form += `
             <p>
-                <button onclick="OG_add('Row')">Add Row</button>
+                <button class="w3-button w3-block w3-dark-grey" onclick="OG_add('Row')">Add Row</button>
             </p>
             </div>`;
         form += `<div class="w3-container w3-green"><h2>General Settings:</h2>`;
@@ -73,37 +73,38 @@ class FormGenerator {
         let form = `
             <div class="w3-panel ${id % 2 === 0 ? "w3-light-blue" : "w3-cyan"} w3-card-4">
             <h3>
-                Row ${id + 1}: 
-                <button onclick="OG_showHide('Row', ${id})">`;
-        form += r.show ? `Hide &and;` : `Show &or;`;
-        form += `</button><button onclick="OG_move('Row', ${id}, ${id - 1})"`;
+                <button class="w3-button w3-blue-grey w3-medium" onclick="OG_move('Row', ${id}, ${id - 1})"`;
         if (id === 0) form += ` disabled`;
-        form += `>&uarr;</button><button onclick="OG_move('Row', ${id}, ${id + 1})"`;
+        form += `>&uarr;</button><button class="w3-button w3-blue-grey w3-medium" onclick="OG_move('Row', ${id}, ${id + 1})"`;
         if (id === this.settings.rows.length - 1) form += ` disabled`;
-        form += `>&darr;</button><button class="w3-right" onclick="OG_remove('Row', ${id})">X</button></h3>`;
+        form += `>&darr;</button><button class="w3-button w3-blue-grey w3-medium" onclick="OG_showHide('Row', ${id})">`;
+        form += r.show ? `Hide &and;` : `Show &or;`;
+        form += `</button>
+                Row ${id + 1}
+                <button class="w3-right w3-button w3-blue-grey w3-medium" onclick="OG_remove('Row', ${id})">X</button>
+            </h3>`;
         if (!r.show) return (form += `</div>`);
-        form += `<p>Radius:
-                <input type="number" id="OG_Row_${id}_Radius" 
+        form += `<p>Radius (in px):
+                <input type="number" id="OG_Row_${id}_Radius" class="w3-input"
                     name="Radius Row" value="${r.radius}" oninput="OG_update()" size="5">
             </p>
-            <p>Left Border:
-                <input type="number" id="OG_Row_${id}_LeftBorder" 
-                    name="Left Border Row" value="${r.leftAngle}" oninput="OG_update()" size="5">°
+            <p>Left Border (in °):
+                <input type="number" id="OG_Row_${id}_LeftBorder" class="w3-input"
+                    name="Left Border Row" value="${r.leftAngle}" oninput="OG_update()" size="5">
             </p>
-            <p>Right Border:
-                <input type="number" id="OG_Row_${id}_RightBorder" 
+            <p>Right Border (in °):
+                <input type="number" id="OG_Row_${id}_RightBorder" class="w3-input"
                     name="Right Border Row" value="${r.rightAngle}" oninput="OG_update()" size="5"`;
         if (r.sync) form += ` disabled`;
-        form += `>°
+        form += `>
             </p>
-            <p>Sync Borders:
-                <input type="checkbox" id="OG_Row_${id}_Sync"
+            <p><input type="checkbox" id="OG_Row_${id}_Sync" class="w3-check"
                     name="Sync Border Row"`;
         if (r.sync) form += ` checked`;
-        form += ` onchange="OG_update(1)">
+        form += ` onchange="OG_update(1)"><label> Sync</label>
             </p>`;
         for (let i = 0; i < r.registers.length; i++) form += this.drawRegister(i, id);
-        form += `<p><button onclick="OG_add('Register', ${id})">Add Register</button></p></div>`;
+        form += `<p><button class="w3-button w3-block w3-blue-grey" onclick="OG_add('Register', ${id})">Add Register</button></p></div>`;
         return form;
     }
 
@@ -130,22 +131,22 @@ class FormGenerator {
         let r = this.settings.rows[row].registers[id];
         let form = `
             <div class="w3-panel ${id % 2 === 0 ? "w3-aqua" : row % 2 === 0 ? "w3-cyan" : "w3-light-blue"} w3-card-4">    
-            <h4><span id="OG_Register_${row}:${id}_nameTag">`;
-        form += r.name ? r.name : `Register ${id + 1}`;
-        form += `</span> <button onclick="OG_showHide('Register', ${row}, ${id})">`;
-        form += r.show ? `Hide &and;` : `Show &or;`;
-        form += `</button><button onclick="OG_move('Register', ${id}, ${id - 1}, ${row})"`;
+            <h4><button class="w3-button w3-blue-grey w3-medium" onclick="OG_move('Register', ${id}, ${id - 1}, ${row})"`;
         if (id === 0) form += ` disabled`;
-        form += `>&uarr;</button><button onclick="OG_move('Register', ${id}, ${id + 1}, ${row})"`;
+        form += `>&uarr;</button><button class="w3-button w3-blue-grey w3-medium" onclick="OG_move('Register', ${id}, ${id + 1}, ${row})"`;
         if (id === this.settings.rows[row].registers.length - 1) form += ` disabled`;
-        form += `>&darr;</button><button class="w3-right" onclick="OG_remove('Register', ${row}, ${id})">X</button></h4>`;
+        form += `>&darr;</button><button class="w3-button w3-blue-grey w3-medium" onclick="OG_showHide('Register', ${row}, ${id})">`;
+        form += r.show ? `Hide &and;` : `Show &or;`;
+        form += `</button> <span id="OG_Register_${row}:${id}_nameTag">`;
+        form += r.name ? r.name : `Register ${id + 1}`;
+        form += `</span> <button class="w3-right w3-button w3-blue-grey w3-medium" onclick="OG_remove('Register', ${row}, ${id})">X</button></h4>`;
         if (!r.show) return (form += `</div>`);
         form += `<p>Name:
-                <input type="text" id="OG_Register_${row}:${id}_name"
+                <input type="text" id="OG_Register_${row}:${id}_name" class="w3-input"
                     name="Name Register" value="${r.name}" oninput="OG_update()" size="20">
             </p>
             <p>Count:
-                <input type="number" id="OG_Register_${row}:${id}_count"
+                <input type="number" id="OG_Register_${row}:${id}_count" class="w3-input"
                     name="Count Register" value="${r.count}" oninput="OG_update()" size="5">
             </p>
             </div>
@@ -176,7 +177,8 @@ class FormGenerator {
         let form = `<div class="w3-panel w3-light-green w3-card-4">
             <h3>Conductor:</h3>
             <p>Position: 
-                <input type="number" id="OG_Conductor_Pos" name="Position Conductor" value="${this.settings.conductorPos}" oninput="OG_update()" size="5">
+                <input type="number" id="OG_Conductor_Pos" class="w3-input"
+                    name="Position Conductor" value="${this.settings.conductorPos}" oninput="OG_update()" size="5">
                 0 equals circle center point
             </p></div>`;
         return form;
