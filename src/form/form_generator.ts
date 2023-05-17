@@ -28,9 +28,9 @@ class FormGenerator {
 
     public add(type: "Row" | "Register", row: number): void {
         if (type === "Row") {
-            this.settings.rows.push({ radius: 0, leftAngle: 90, rightAngle: 90, sync: true, registers: [] });
+            this.settings.rows.push({ radius: 0, leftAngle: 90, rightAngle: 90, sync: true, show: true, registers: [] });
         } else {
-            this.settings.rows[row].registers.push({ name: "", count: 0 });
+            this.settings.rows[row].registers.push({ name: "", count: 0, show: true });
         }
         this.draw();
     }
@@ -44,11 +44,27 @@ class FormGenerator {
         this.draw();
     }
 
+    public showHide(type: "Row" | "Register", row: number, register: number) {
+        if (type === "Row") {
+            this.settings.rows[row].show = !this.settings.rows[row].show;
+        } else {
+            this.settings.rows[row].registers[register].show = !this.settings.rows[row].registers[register].show;
+        }
+        this.draw();
+    }
+
     private drawRow(id: number): string {
         let r = this.settings.rows[id];
         let form = `
-            <h3><button onclick="OG_remove('Row', ${id})">X</button> Row ${id + 1}:</h3>
-            <p>Radius:
+            <h3>
+                <button onclick="OG_remove('Row', ${id})">X</button>
+                Row ${id + 1}: 
+                <button onclick="OG_showHide('Row', ${id})">`;
+        form += r.show ? `Hide &and;` : `Show &or;`;
+        form += `</button>
+            </h3>`;
+        if (!r.show) return form;
+        form +=`<p>Radius:
                 <input type="number" id="OG_Row_${id}_Radius" 
                     name="Radius Row" value="${r.radius}" oninput="OG_update()" size="5">
             </p>
@@ -64,7 +80,7 @@ class FormGenerator {
             </p>
             <p>Sync Borders:
                 <input type="checkbox" id="OG_Row_${id}_Sync"
-                    name="Sync Border Row"`
+                    name="Sync Border Row"`;
         if (r.sync) form += ` checked`;
         form += ` onchange="OG_update(1)">
             </p>`;
@@ -75,26 +91,34 @@ class FormGenerator {
 
     private updateRow(id: number): void {
         let r = this.settings.rows[id];
-        let radiusElement = <HTMLInputElement> document.getElementById(`OG_Row_${id}_Radius`);
-        let leftBorderElement = <HTMLInputElement> document.getElementById(`OG_Row_${id}_LeftBorder`);
-        let rightBorderElement = <HTMLInputElement> document.getElementById(`OG_Row_${id}_RightBorder`);
-        let syncElement = <HTMLInputElement> document.getElementById(`OG_Row_${id}_Sync`);
+        if (!r.show) return;
+        let radiusElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_Radius`);
+        let leftBorderElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_LeftBorder`);
+        let rightBorderElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_RightBorder`);
+        let syncElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_Sync`);
         r.radius = Number(radiusElement.value);
         r.leftAngle = Number(leftBorderElement.value);
         r.sync = syncElement.checked;
-        if(r.sync) {
+        if (r.sync) {
             r.rightAngle = Number(leftBorderElement.value);
             rightBorderElement.value = String(r.rightAngle);
         } else {
             r.rightAngle = Number(rightBorderElement.value);
         }
-        for(let i = 0; i < r.registers.length; i++) this.updateRegister(i, id);
+        for (let i = 0; i < r.registers.length; i++) this.updateRegister(i, id);
     }
 
     private drawRegister(id: number, row: number): string {
         let r = this.settings.rows[row].registers[id];
-        let form = `<h4><button onclick="OG_remove('Register', ${row}, ${id})">X</button> Register ${id + 1}</h4>
-            <p>Name:
+        let form = `<h4>
+                <button onclick="OG_remove('Register', ${row}, ${id})">X</button> <span id="OG_Register_${row}:${id}_nameTag">`;
+        form += r.name ? r.name : `Register ${id + 1}`
+        form += `</span> <button onclick="OG_showHide('Register', ${row}, ${id})">`;
+        form += r.show ? `Hide &and;` : `Show &or;`;
+        form += `</button>
+            </h4>`;
+        if (!r.show) return form;
+        form += `<p>Name:
                 <input type="text" id="OG_Register_${row}:${id}_name"
                     name="Name Register" value="${r.name}" oninput="OG_update()" size="20">
             </p>
@@ -108,9 +132,11 @@ class FormGenerator {
 
     private updateRegister(id: number, row: number): void {
         let r = this.settings.rows[row].registers[id];
-        let nameElement = <HTMLInputElement> document.getElementById(`OG_Register_${row}:${id}_name`);
-        let countElement = <HTMLInputElement> document.getElementById(`OG_Register_${row}:${id}_count`);
+        if (!r.show) return;
+        let nameElement = <HTMLInputElement>document.getElementById(`OG_Register_${row}:${id}_name`);
+        let countElement = <HTMLInputElement>document.getElementById(`OG_Register_${row}:${id}_count`);
         r.name = nameElement.value;
+        document.getElementById(`OG_Register_${row}:${id}_nameTag`).innerText = r.name ? r.name : `Register ${id + 1}`;
         r.count = Number(countElement.value);
     }
 

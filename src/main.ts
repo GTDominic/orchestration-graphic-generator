@@ -18,3 +18,7 @@ function OG_remove(type: "Row" | "Register", row: number, register: number = 0):
     form.remove(type, row, register);
     let grapic = new DiagramGenerator(G_settings);
 }
+
+function OG_showHide(type: "Row" | "Register", row: number, register: number = 0): void {
+    form.showHide(type, row, register);
+}
