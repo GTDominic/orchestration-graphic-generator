@@ -53,6 +53,19 @@ class FormGenerator {
         this.draw();
     }
 
+    public move(type: "Row" | "Register", from: number, to: number, row: number) {
+        let r: Array<I_RegisterSettings | I_RowSettings>;
+        if (type === "Row") {
+            r = this.settings.rows;
+        } else {
+            r = this.settings.rows[row].registers;
+        }
+        let temp = r[from];
+        r[from] = r[to];
+        r[to] = temp;
+        this.draw();
+    }
+
     private drawRow(id: number): string {
         let r = this.settings.rows[id];
         let form = `
@@ -61,10 +74,13 @@ class FormGenerator {
                 Row ${id + 1}: 
                 <button onclick="OG_showHide('Row', ${id})">`;
         form += r.show ? `Hide &and;` : `Show &or;`;
-        form += `</button>
-            </h3>`;
+        form += `</button><button onclick="OG_move('Row', ${id}, ${id - 1})"`;
+        if (id === 0) form += ` disabled`;
+        form += `>&uarr;</button><button onclick="OG_move('Row', ${id}, ${id + 1})"`;
+        if (id === this.settings.rows.length - 1) form += ` disabled`;
+        form += `>&darr;</button></h3>`;
         if (!r.show) return form;
-        form +=`<p>Radius:
+        form += `<p>Radius:
                 <input type="number" id="OG_Row_${id}_Radius" 
                     name="Radius Row" value="${r.radius}" oninput="OG_update()" size="5">
             </p>
@@ -112,11 +128,14 @@ class FormGenerator {
         let r = this.settings.rows[row].registers[id];
         let form = `<h4>
                 <button onclick="OG_remove('Register', ${row}, ${id})">X</button> <span id="OG_Register_${row}:${id}_nameTag">`;
-        form += r.name ? r.name : `Register ${id + 1}`
+        form += r.name ? r.name : `Register ${id + 1}`;
         form += `</span> <button onclick="OG_showHide('Register', ${row}, ${id})">`;
         form += r.show ? `Hide &and;` : `Show &or;`;
-        form += `</button>
-            </h4>`;
+        form += `</button><button onclick="OG_move('Register', ${id}, ${id - 1}, ${row})"`;
+        if (id === 0) form += ` disabled`;
+        form += `>&uarr;</button><button onclick="OG_move('Register', ${id}, ${id + 1}, ${row})"`;
+        if (id === this.settings.rows[row].registers.length - 1) form += ` disabled`;
+        form += `>&darr;</button></h4>`;
         if (!r.show) return form;
         form += `<p>Name:
                 <input type="text" id="OG_Register_${row}:${id}_name"
