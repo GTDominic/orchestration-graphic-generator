@@ -7,15 +7,17 @@ class FormGenerator {
     }
 
     public draw(): void {
-        let form = `<h1>Orchestration Graphic Generator</h1>`;
-        form += `<h2>Rows:</h2>`;
+        let form = `<div class="w3-container w3-indigo"><h1>Orchestration Graphic Generator</h1></div>`;
+        form += `<div class="w3-container w3-teal"><h2>Rows:</h2>`;
         for (let i = 0; i < this.settings.rows.length; i++) form += this.drawRow(i);
         form += `
             <p>
                 <button onclick="OG_add('Row')">Add Row</button>
-            </p>`;
-        form += `<h2>General Settings:</h2>`;
+            </p>
+            </div>`;
+        form += `<div class="w3-container w3-green"><h2>General Settings:</h2>`;
         form += this.drawSettings();
+        form += `</div>`;
         document.getElementById(config.formAnchorId).innerHTML = form;
     }
 
@@ -69,8 +71,8 @@ class FormGenerator {
     private drawRow(id: number): string {
         let r = this.settings.rows[id];
         let form = `
+            <div class="w3-panel ${id % 2 === 0 ? "w3-light-blue" : "w3-cyan"} w3-card-4">
             <h3>
-                <button onclick="OG_remove('Row', ${id})">X</button>
                 Row ${id + 1}: 
                 <button onclick="OG_showHide('Row', ${id})">`;
         form += r.show ? `Hide &and;` : `Show &or;`;
@@ -78,8 +80,8 @@ class FormGenerator {
         if (id === 0) form += ` disabled`;
         form += `>&uarr;</button><button onclick="OG_move('Row', ${id}, ${id + 1})"`;
         if (id === this.settings.rows.length - 1) form += ` disabled`;
-        form += `>&darr;</button></h3>`;
-        if (!r.show) return form;
+        form += `>&darr;</button><button class="w3-right" onclick="OG_remove('Row', ${id})">X</button></h3>`;
+        if (!r.show) return (form += `</div>`);
         form += `<p>Radius:
                 <input type="number" id="OG_Row_${id}_Radius" 
                     name="Radius Row" value="${r.radius}" oninput="OG_update()" size="5">
@@ -101,7 +103,7 @@ class FormGenerator {
         form += ` onchange="OG_update(1)">
             </p>`;
         for (let i = 0; i < r.registers.length; i++) form += this.drawRegister(i, id);
-        form += `<p><button onclick="OG_add('Register', ${id})">Add Register</button></p>`;
+        form += `<p><button onclick="OG_add('Register', ${id})">Add Register</button></p></div>`;
         return form;
     }
 
@@ -126,8 +128,9 @@ class FormGenerator {
 
     private drawRegister(id: number, row: number): string {
         let r = this.settings.rows[row].registers[id];
-        let form = `<h4>
-                <button onclick="OG_remove('Register', ${row}, ${id})">X</button> <span id="OG_Register_${row}:${id}_nameTag">`;
+        let form = `
+            <div class="w3-panel ${id % 2 === 0 ? "w3-aqua" : row % 2 === 0 ? "w3-cyan" : "w3-light-blue"} w3-card-4">    
+            <h4><span id="OG_Register_${row}:${id}_nameTag">`;
         form += r.name ? r.name : `Register ${id + 1}`;
         form += `</span> <button onclick="OG_showHide('Register', ${row}, ${id})">`;
         form += r.show ? `Hide &and;` : `Show &or;`;
@@ -135,8 +138,8 @@ class FormGenerator {
         if (id === 0) form += ` disabled`;
         form += `>&uarr;</button><button onclick="OG_move('Register', ${id}, ${id + 1}, ${row})"`;
         if (id === this.settings.rows[row].registers.length - 1) form += ` disabled`;
-        form += `>&darr;</button></h4>`;
-        if (!r.show) return form;
+        form += `>&darr;</button><button class="w3-right" onclick="OG_remove('Register', ${row}, ${id})">X</button></h4>`;
+        if (!r.show) return (form += `</div>`);
         form += `<p>Name:
                 <input type="text" id="OG_Register_${row}:${id}_name"
                     name="Name Register" value="${r.name}" oninput="OG_update()" size="20">
@@ -145,6 +148,7 @@ class FormGenerator {
                 <input type="number" id="OG_Register_${row}:${id}_count"
                     name="Count Register" value="${r.count}" oninput="OG_update()" size="5">
             </p>
+            </div>
         `;
         return form;
     }
@@ -169,12 +173,12 @@ class FormGenerator {
     }
 
     private drawSettingsConductor(): string {
-        let form = `
+        let form = `<div class="w3-panel w3-light-green w3-card-4">
             <h3>Conductor:</h3>
             <p>Position: 
                 <input type="number" id="OG_Conductor_Pos" name="Position Conductor" value="${this.settings.conductorPos}" oninput="OG_update()" size="5">
                 0 equals circle center point
-            </p>`;
+            </p></div>`;
         return form;
     }
 
