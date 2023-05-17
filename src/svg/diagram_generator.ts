@@ -9,7 +9,7 @@ class DiagramGenerator {
         this.svg = new SVGGenerator(config.graphicAnchorId);
         this.calculateSize();
         for (let r of this.settings.rows) this.drawRegisters(r);
-        if (config.debug && config.diagramSettings.drawCircles) this.drawCircles();
+        if (config.environment === "dev" && config.diagramSettings.drawCircles) this.drawCircles();
         this.drawConductor();
     }
 
@@ -41,7 +41,7 @@ class DiagramGenerator {
             playerAngles.push(tempAngle);
             tempAngle += distance;
         }
-        if (config.debug) console.log(playerAngles);
+        if (config.environment === "dev" && config.debug) console.log(playerAngles);
         tempAngle = -row.leftAngle;
         for (let reg of row.registers) {
             // Skip registers without people
@@ -49,7 +49,7 @@ class DiagramGenerator {
             tempAngle += distance * reg.count;
             borderAngles.push(tempAngle);
         }
-        if (config.debug) console.log(borderAngles);
+        if (config.environment === "dev" && config.debug) console.log(borderAngles);
         for(let i = 0; i < borderAngles.length - 1; i++) {
             let rO = row.radius + config.diagramSettings.registerPadding;
             let rI = row.radius - config.diagramSettings.registerPadding;

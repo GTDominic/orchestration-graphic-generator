@@ -1,8 +1,8 @@
 const config: I_Config = {
-    version: "0.1.0",
+    version: "0.2.0",
     environment: "dev",
     name: "orchestration-graphic-generator",
-    debug: true,
+    debug: false,
     graphicAnchorId: "svg_out",
     formAnchorId: "form",
     diagramSettings: {

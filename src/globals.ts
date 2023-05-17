@@ -13,10 +13,12 @@ interface I_RowSettings {
     leftAngle: number;
     rightAngle: number;
     sync: boolean;
+    show: boolean;
     registers: Array<I_RegisterSettings>;
 }
 
 interface I_RegisterSettings {
     name: string;
     count: number;
+    show: boolean;
 }

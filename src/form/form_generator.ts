@@ -7,30 +7,32 @@ class FormGenerator {
     }
 
     public draw(): void {
-        let form = `<h1>Orchestration Graphic Generator</h1>`;
-        form += `<h2>Rows:</h2>`;
+        let form = `<div class="w3-container w3-indigo"><h1>Orchestration Graphic Generator</h1></div>`;
+        form += `<div class="w3-container w3-teal"><h2>Rows:</h2>`;
         for (let i = 0; i < this.settings.rows.length; i++) form += this.drawRow(i);
         form += `
             <p>
-                <button onclick="OG_add('Row')">Add Row</button>
-            </p>`;
-        form += `<h2>General Settings:</h2>`;
+                <button class="w3-button w3-block w3-dark-grey" onclick="OG_add('Row')">Add Row</button>
+            </p>
+            </div>`;
+        form += `<div class="w3-container w3-green"><h2>General Settings:</h2>`;
         form += this.drawSettings();
+        form += `</div>`;
         document.getElementById(config.formAnchorId).innerHTML = form;
     }
 
     public update(mode: 0 | 1): void {
         for (let i = 0; i < this.settings.rows.length; i++) this.updateRow(i);
         this.updateSettings();
-        if (config.debug) console.log(this.settings);
+        if (config.environment === "dev" && config.debug) console.log(this.settings);
         if (mode === 1) this.draw();
     }
 
     public add(type: "Row" | "Register", row: number): void {
         if (type === "Row") {
-            this.settings.rows.push({ radius: 0, leftAngle: 90, rightAngle: 90, sync: true, registers: [] });
+            this.settings.rows.push({ radius: 0, leftAngle: 90, rightAngle: 90, sync: true, show: true, registers: [] });
         } else {
-            this.settings.rows[row].registers.push({ name: "", count: 0 });
+            this.settings.rows[row].registers.push({ name: "", count: 0, show: true });
         }
         this.draw();
     }
@@ -44,73 +46,121 @@ class FormGenerator {
         this.draw();
     }
 
+    public showHide(type: "Row" | "Register", row: number, register: number) {
+        if (type === "Row") {
+            this.settings.rows[row].show = !this.settings.rows[row].show;
+        } else {
+            this.settings.rows[row].registers[register].show = !this.settings.rows[row].registers[register].show;
+        }
+        this.draw();
+    }
+
+    public move(type: "Row" | "Register", from: number, to: number, row: number) {
+        let r: Array<I_RegisterSettings | I_RowSettings>;
+        if (type === "Row") {
+            r = this.settings.rows;
+        } else {
+            r = this.settings.rows[row].registers;
+        }
+        let temp = r[from];
+        r[from] = r[to];
+        r[to] = temp;
+        this.draw();
+    }
+
     private drawRow(id: number): string {
         let r = this.settings.rows[id];
         let form = `
-            <h3><button onclick="OG_remove('Row', ${id})">X</button> Row ${id + 1}:</h3>
-            <p>Radius:
-                <input type="number" id="OG_Row_${id}_Radius" 
+            <div class="w3-panel ${id % 2 === 0 ? "w3-light-blue" : "w3-cyan"} w3-card-4">
+            <h3>
+                <button class="w3-button w3-blue-grey w3-medium" onclick="OG_move('Row', ${id}, ${id - 1})"`;
+        if (id === 0) form += ` disabled`;
+        form += `>&uarr;</button><button class="w3-button w3-blue-grey w3-medium" onclick="OG_move('Row', ${id}, ${id + 1})"`;
+        if (id === this.settings.rows.length - 1) form += ` disabled`;
+        form += `>&darr;</button><button class="w3-button w3-blue-grey w3-medium" onclick="OG_showHide('Row', ${id})">`;
+        form += r.show ? `Hide &and;` : `Show &or;`;
+        form += `</button>
+                Row ${id + 1}
+                <button class="w3-right w3-button w3-blue-grey w3-medium" onclick="OG_remove('Row', ${id})">X</button>
+            </h3>`;
+        if (!r.show) return (form += `</div>`);
+        form += `<p>Radius (in px):
+                <input type="number" id="OG_Row_${id}_Radius" class="w3-input"
                     name="Radius Row" value="${r.radius}" oninput="OG_update()" size="5">
             </p>
-            <p>Left Border:
-                <input type="number" id="OG_Row_${id}_LeftBorder" 
-                    name="Left Border Row" value="${r.leftAngle}" oninput="OG_update()" size="5">°
+            <p>Left Border (in °):
+                <input type="number" id="OG_Row_${id}_LeftBorder" class="w3-input"
+                    name="Left Border Row" value="${r.leftAngle}" oninput="OG_update()" size="5">
             </p>
-            <p>Right Border:
-                <input type="number" id="OG_Row_${id}_RightBorder" 
+            <p>Right Border (in °):
+                <input type="number" id="OG_Row_${id}_RightBorder" class="w3-input"
                     name="Right Border Row" value="${r.rightAngle}" oninput="OG_update()" size="5"`;
         if (r.sync) form += ` disabled`;
-        form += `>°
+        form += `>
             </p>
-            <p>Sync Borders:
-                <input type="checkbox" id="OG_Row_${id}_Sync"
-                    name="Sync Border Row"`
+            <p><input type="checkbox" id="OG_Row_${id}_Sync" class="w3-check"
+                    name="Sync Border Row"`;
         if (r.sync) form += ` checked`;
-        form += ` onchange="OG_update(1)">
+        form += ` onchange="OG_update(1)"><label> Sync</label>
             </p>`;
         for (let i = 0; i < r.registers.length; i++) form += this.drawRegister(i, id);
-        form += `<p><button onclick="OG_add('Register', ${id})">Add Register</button></p>`;
+        form += `<p><button class="w3-button w3-block w3-blue-grey" onclick="OG_add('Register', ${id})">Add Register</button></p></div>`;
         return form;
     }
 
     private updateRow(id: number): void {
         let r = this.settings.rows[id];
-        let radiusElement = <HTMLInputElement> document.getElementById(`OG_Row_${id}_Radius`);
-        let leftBorderElement = <HTMLInputElement> document.getElementById(`OG_Row_${id}_LeftBorder`);
-        let rightBorderElement = <HTMLInputElement> document.getElementById(`OG_Row_${id}_RightBorder`);
-        let syncElement = <HTMLInputElement> document.getElementById(`OG_Row_${id}_Sync`);
+        if (!r.show) return;
+        let radiusElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_Radius`);
+        let leftBorderElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_LeftBorder`);
+        let rightBorderElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_RightBorder`);
+        let syncElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_Sync`);
         r.radius = Number(radiusElement.value);
         r.leftAngle = Number(leftBorderElement.value);
         r.sync = syncElement.checked;
-        if(r.sync) {
+        if (r.sync) {
             r.rightAngle = Number(leftBorderElement.value);
             rightBorderElement.value = String(r.rightAngle);
         } else {
             r.rightAngle = Number(rightBorderElement.value);
         }
-        for(let i = 0; i < r.registers.length; i++) this.updateRegister(i, id);
+        for (let i = 0; i < r.registers.length; i++) this.updateRegister(i, id);
     }
 
     private drawRegister(id: number, row: number): string {
         let r = this.settings.rows[row].registers[id];
-        let form = `<h4><button onclick="OG_remove('Register', ${row}, ${id})">X</button> Register ${id + 1}</h4>
-            <p>Name:
-                <input type="text" id="OG_Register_${row}:${id}_name"
+        let form = `
+            <div class="w3-panel ${id % 2 === 0 ? "w3-aqua" : row % 2 === 0 ? "w3-cyan" : "w3-light-blue"} w3-card-4">    
+            <h4><button class="w3-button w3-blue-grey w3-medium" onclick="OG_move('Register', ${id}, ${id - 1}, ${row})"`;
+        if (id === 0) form += ` disabled`;
+        form += `>&uarr;</button><button class="w3-button w3-blue-grey w3-medium" onclick="OG_move('Register', ${id}, ${id + 1}, ${row})"`;
+        if (id === this.settings.rows[row].registers.length - 1) form += ` disabled`;
+        form += `>&darr;</button><button class="w3-button w3-blue-grey w3-medium" onclick="OG_showHide('Register', ${row}, ${id})">`;
+        form += r.show ? `Hide &and;` : `Show &or;`;
+        form += `</button> <span id="OG_Register_${row}:${id}_nameTag">`;
+        form += r.name ? r.name : `Register ${id + 1}`;
+        form += `</span> <button class="w3-right w3-button w3-blue-grey w3-medium" onclick="OG_remove('Register', ${row}, ${id})">X</button></h4>`;
+        if (!r.show) return (form += `</div>`);
+        form += `<p>Name:
+                <input type="text" id="OG_Register_${row}:${id}_name" class="w3-input"
                     name="Name Register" value="${r.name}" oninput="OG_update()" size="20">
             </p>
             <p>Count:
-                <input type="number" id="OG_Register_${row}:${id}_count"
+                <input type="number" id="OG_Register_${row}:${id}_count" class="w3-input"
                     name="Count Register" value="${r.count}" oninput="OG_update()" size="5">
             </p>
+            </div>
         `;
         return form;
     }
 
     private updateRegister(id: number, row: number): void {
         let r = this.settings.rows[row].registers[id];
-        let nameElement = <HTMLInputElement> document.getElementById(`OG_Register_${row}:${id}_name`);
-        let countElement = <HTMLInputElement> document.getElementById(`OG_Register_${row}:${id}_count`);
+        if (!r.show) return;
+        let nameElement = <HTMLInputElement>document.getElementById(`OG_Register_${row}:${id}_name`);
+        let countElement = <HTMLInputElement>document.getElementById(`OG_Register_${row}:${id}_count`);
         r.name = nameElement.value;
+        document.getElementById(`OG_Register_${row}:${id}_nameTag`).innerText = r.name ? r.name : `Register ${id + 1}`;
         r.count = Number(countElement.value);
     }
 
@@ -124,12 +174,13 @@ class FormGenerator {
     }
 
     private drawSettingsConductor(): string {
-        let form = `
+        let form = `<div class="w3-panel w3-light-green w3-card-4">
             <h3>Conductor:</h3>
             <p>Position: 
-                <input type="number" id="OG_Conductor_Pos" name="Position Conductor" value="${this.settings.conductorPos}" oninput="OG_update()" size="5">
+                <input type="number" id="OG_Conductor_Pos" class="w3-input"
+                    name="Position Conductor" value="${this.settings.conductorPos}" oninput="OG_update()" size="5">
                 0 equals circle center point
-            </p>`;
+            </p></div>`;
         return form;
     }
 
