@@ -22,7 +22,7 @@ class FormGenerator {
     public update(mode: 0 | 1): void {
         for (let i = 0; i < this.settings.rows.length; i++) this.updateRow(i);
         this.updateSettings();
-        if (config.debug) console.log(this.settings);
+        if (config.environment === "dev" && config.debug) console.log(this.settings);
         if (mode === 1) this.draw();
     }
 
