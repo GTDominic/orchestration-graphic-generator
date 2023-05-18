@@ -5,6 +5,9 @@ interface I_Config {
     debug: boolean;
     graphicAnchorId: string;
     formAnchorId: string;
+    jsonImportId: string;
+    errorId: string;
+    jsonDownloadName: string;
     diagramSettings: {
         paddingTopBottom: number;
         paddingSide: number;

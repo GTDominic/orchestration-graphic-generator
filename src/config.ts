@@ -5,6 +5,9 @@ const config: I_Config = {
     debug: false,
     graphicAnchorId: "svg_out",
     formAnchorId: "form",
+    jsonImportId: "OG_inputfile",
+    errorId: "OG_error",
+    jsonDownloadName: "OG_export",
     diagramSettings: {
         paddingTopBottom: 30,
         paddingSide: 30,
