@@ -1,10 +1,14 @@
 const config: I_Config = {
-    version: "0.2.0",
+    version: "0.3.0",
     environment: "dev",
     name: "orchestration-graphic-generator",
     debug: false,
     graphicAnchorId: "svg_out",
     formAnchorId: "form",
+    jsonImportId: "OG_inputfile",
+    errorId: "OG_error",
+    jsonDownloadName: "OG_export",
+    svgDownloadName: "OG_export",
     diagramSettings: {
         paddingTopBottom: 30,
         paddingSide: 30,

@@ -4,14 +4,17 @@ class SVGGenerator {
     constructor(refId: string) {
         document.getElementById(refId).innerHTML = "";
         this.svg = this.addElement("svg", {}, document.getElementById(refId));
+        this.svg.setAttribute("xmlns", "http://www.w3.org/2000/svg")
     }
 
-    public addCircle(cx: number, cy: number, r: number, cssClass: string, style: string = ""): void {
-        this.addElement("circle", { cx, cy, r, class: cssClass, style });
+    public addCircle(cx: number, cy: number, r: number, styleObj: { [index: string]: any }): void {
+        let style = this.convertStyle(styleObj);
+        this.addElement("circle", { cx, cy, r, style });
     }
 
-    public addPath(d: string, cssClass: string, style: string = ""): void {
-        this.addElement("path", { d, class: cssClass, style });
+    public addPath(d: string, styleObj: { [index: string]: any }): void {
+        let style = this.convertStyle(styleObj);
+        this.addElement("path", { d, style });
     }
 
     public setSize(width: number, height: number): void {
@@ -27,5 +30,13 @@ class SVGGenerator {
         let element = document.createElementNS("http://www.w3.org/2000/svg", form);
         this.setAttr(element, attr);
         return context.appendChild(element);
+    }
+
+    private convertStyle(styleObj: { [index: string]: any }): string {
+        let style = "";
+        for (let key in styleObj) {
+            style += `${key}:${styleObj[key]};`;
+        }
+        return style;
     }
 }

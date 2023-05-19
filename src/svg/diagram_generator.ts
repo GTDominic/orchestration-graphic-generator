@@ -1,23 +1,38 @@
 class DiagramGenerator {
-    private settings: I_Settings;
     private svg: SVGGenerator;
     private center: { x: number; y: number };
     private currentColor: number = 0;
+    private style: { [index: string]: { [index: string]: string } } = {};
 
-    constructor(settings: I_Settings) {
-        this.settings = settings;
+    constructor() {
+        this.setStyleClasses();
         this.svg = new SVGGenerator(config.graphicAnchorId);
         this.calculateSize();
-        for (let r of this.settings.rows) this.drawRegisters(r);
+        for (let r of G_settings.rows) this.drawRegisters(r);
         if (config.environment === "dev" && config.diagramSettings.drawCircles) this.drawCircles();
         this.drawConductor();
+    }
+
+    private setStyleClasses(): void {
+        this.style.bordered = {
+            "stroke": "black",
+            "stroke-width": "2px",
+            "fill": "none",
+        }
+        this.style.dot = {
+            "fill": "red",
+            "stroke": "none",
+        }
+        this.style.registerBack = {
+            "stroke": "none",
+        }
     }
 
     private calculateSize(): void {
         let biggestRadius = 0;
         let xSize = 0;
         let ySize = 0;
-        for (let row of this.settings.rows) if (row.radius > biggestRadius) biggestRadius = row.radius;
+        for (let row of G_settings.rows) if (row.radius > biggestRadius) biggestRadius = row.radius;
         this.center = { x: biggestRadius + config.diagramSettings.paddingSide, y: biggestRadius + config.diagramSettings.paddingTopBottom };
         xSize = 2 * biggestRadius + 2 * config.diagramSettings.paddingSide;
         ySize = this.findLowestPoint() + config.diagramSettings.paddingTopBottom;
@@ -25,8 +40,8 @@ class DiagramGenerator {
     }
 
     private drawCircles(): void {
-        for (let row of this.settings.rows) {
-            this.svg.addCircle(this.center.x, this.center.y, row.radius, "OGG_bordered");
+        for (let row of G_settings.rows) {
+            this.svg.addCircle(this.center.x, this.center.y, row.radius, this.style.bordered);
         }
     }
 
@@ -50,7 +65,7 @@ class DiagramGenerator {
             borderAngles.push(tempAngle);
         }
         if (config.environment === "dev" && config.debug) console.log(borderAngles);
-        for(let i = 0; i < borderAngles.length - 1; i++) {
+        for (let i = 0; i < borderAngles.length - 1; i++) {
             let rO = row.radius + config.diagramSettings.registerPadding;
             let rI = row.radius - config.diagramSettings.registerPadding;
             let p1 = this.findCoordinatesFromAngle(borderAngles[i], rO);
@@ -62,16 +77,18 @@ class DiagramGenerator {
             let color = config.diagramSettings.colors[this.currentColor];
             this.currentColor++;
             if (this.currentColor === config.diagramSettings.colors.length) this.currentColor = 0;
-            this.svg.addPath(d, "OGG_registerBack", `fill: ${color}`);
+            let style = this.style.registerBack;
+            style.fill = color;
+            this.svg.addPath(d, style);
         }
-        for(let angle of playerAngles) {
+        for (let angle of playerAngles) {
             let position = this.findCoordinatesFromAngle(angle, row.radius);
-            this.svg.addCircle(position.x, position.y, config.diagramSettings.playerSize, "OGG_dot");
+            this.svg.addCircle(position.x, position.y, config.diagramSettings.playerSize, this.style.dot);
         }
     }
 
     private drawConductor(): void {
-        this.svg.addCircle(this.center.x, this.center.y - this.settings.conductorPos, config.diagramSettings.conductorSize, "OGG_dot");
+        this.svg.addCircle(this.center.x, this.center.y - G_settings.conductorPos, config.diagramSettings.conductorSize, this.style.dot);
     }
 
     private findCoordinatesFromAngle(angle: number, radius: number): { x: number; y: number } {
@@ -83,11 +100,11 @@ class DiagramGenerator {
     }
 
     private findLowestPoint(): number {
-        let conductorPos = this.center.y - this.settings.conductorPos;
+        let conductorPos = this.center.y - G_settings.conductorPos;
         let lowestLeft = 0;
         let lowestRight = 0;
         let lowest = 0;
-        for (let row of this.settings.rows) {
+        for (let row of G_settings.rows) {
             let left = this.findCoordinatesFromAngle(-row.leftAngle, row.radius).y;
             let right = this.findCoordinatesFromAngle(row.rightAngle, row.radius).y;
             if (left > lowestLeft) lowestLeft = left;

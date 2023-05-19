@@ -1,15 +1,12 @@
 class FormGenerator {
-    private settings: I_Settings;
-
-    constructor(settings: I_Settings) {
-        this.settings = settings;
+    constructor() {
         this.draw();
     }
 
     public draw(): void {
         let form = `<div class="w3-container w3-indigo"><h1>Orchestration Graphic Generator</h1></div>`;
         form += `<div class="w3-container w3-teal"><h2>Rows:</h2>`;
-        for (let i = 0; i < this.settings.rows.length; i++) form += this.drawRow(i);
+        for (let i = 0; i < G_settings.rows.length; i++) form += this.drawRow(i);
         form += `
             <p>
                 <button class="w3-button w3-block w3-dark-grey" onclick="OG_add('Row')">Add Row</button>
@@ -22,35 +19,35 @@ class FormGenerator {
     }
 
     public update(mode: 0 | 1): void {
-        for (let i = 0; i < this.settings.rows.length; i++) this.updateRow(i);
+        for (let i = 0; i < G_settings.rows.length; i++) this.updateRow(i);
         this.updateSettings();
-        if (config.environment === "dev" && config.debug) console.log(this.settings);
+        if (config.environment === "dev" && config.debug) console.log(G_settings);
         if (mode === 1) this.draw();
     }
 
     public add(type: "Row" | "Register", row: number): void {
         if (type === "Row") {
-            this.settings.rows.push({ radius: 0, leftAngle: 90, rightAngle: 90, sync: true, show: true, registers: [] });
+            G_settings.rows.push({ radius: 0, leftAngle: 90, rightAngle: 90, sync: true, show: true, registers: [] });
         } else {
-            this.settings.rows[row].registers.push({ name: "", count: 0, show: true });
+            G_settings.rows[row].registers.push({ name: "", count: 0, show: true });
         }
         this.draw();
     }
 
     public remove(type: "Row" | "Register", row: number, register: number): void {
         if (type === "Row") {
-            this.settings.rows.splice(row, 1);
+            G_settings.rows.splice(row, 1);
         } else {
-            this.settings.rows[row].registers.splice(register, 1);
+            G_settings.rows[row].registers.splice(register, 1);
         }
         this.draw();
     }
 
     public showHide(type: "Row" | "Register", row: number, register: number) {
         if (type === "Row") {
-            this.settings.rows[row].show = !this.settings.rows[row].show;
+            G_settings.rows[row].show = !G_settings.rows[row].show;
         } else {
-            this.settings.rows[row].registers[register].show = !this.settings.rows[row].registers[register].show;
+            G_settings.rows[row].registers[register].show = !G_settings.rows[row].registers[register].show;
         }
         this.draw();
     }
@@ -58,9 +55,9 @@ class FormGenerator {
     public move(type: "Row" | "Register", from: number, to: number, row: number) {
         let r: Array<I_RegisterSettings | I_RowSettings>;
         if (type === "Row") {
-            r = this.settings.rows;
+            r = G_settings.rows;
         } else {
-            r = this.settings.rows[row].registers;
+            r = G_settings.rows[row].registers;
         }
         let temp = r[from];
         r[from] = r[to];
@@ -69,14 +66,14 @@ class FormGenerator {
     }
 
     private drawRow(id: number): string {
-        let r = this.settings.rows[id];
+        let r = G_settings.rows[id];
         let form = `
             <div class="w3-panel ${id % 2 === 0 ? "w3-light-blue" : "w3-cyan"} w3-card-4">
             <h3>
                 <button class="w3-button w3-blue-grey w3-medium" onclick="OG_move('Row', ${id}, ${id - 1})"`;
         if (id === 0) form += ` disabled`;
         form += `>&uarr;</button><button class="w3-button w3-blue-grey w3-medium" onclick="OG_move('Row', ${id}, ${id + 1})"`;
-        if (id === this.settings.rows.length - 1) form += ` disabled`;
+        if (id === G_settings.rows.length - 1) form += ` disabled`;
         form += `>&darr;</button><button class="w3-button w3-blue-grey w3-medium" onclick="OG_showHide('Row', ${id})">`;
         form += r.show ? `Hide &and;` : `Show &or;`;
         form += `</button>
@@ -109,7 +106,7 @@ class FormGenerator {
     }
 
     private updateRow(id: number): void {
-        let r = this.settings.rows[id];
+        let r = G_settings.rows[id];
         if (!r.show) return;
         let radiusElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_Radius`);
         let leftBorderElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_LeftBorder`);
@@ -128,13 +125,13 @@ class FormGenerator {
     }
 
     private drawRegister(id: number, row: number): string {
-        let r = this.settings.rows[row].registers[id];
+        let r = G_settings.rows[row].registers[id];
         let form = `
             <div class="w3-panel ${id % 2 === 0 ? "w3-aqua" : row % 2 === 0 ? "w3-cyan" : "w3-light-blue"} w3-card-4">    
             <h4><button class="w3-button w3-blue-grey w3-medium" onclick="OG_move('Register', ${id}, ${id - 1}, ${row})"`;
         if (id === 0) form += ` disabled`;
         form += `>&uarr;</button><button class="w3-button w3-blue-grey w3-medium" onclick="OG_move('Register', ${id}, ${id + 1}, ${row})"`;
-        if (id === this.settings.rows[row].registers.length - 1) form += ` disabled`;
+        if (id === G_settings.rows[row].registers.length - 1) form += ` disabled`;
         form += `>&darr;</button><button class="w3-button w3-blue-grey w3-medium" onclick="OG_showHide('Register', ${row}, ${id})">`;
         form += r.show ? `Hide &and;` : `Show &or;`;
         form += `</button> <span id="OG_Register_${row}:${id}_nameTag">`;
@@ -155,7 +152,7 @@ class FormGenerator {
     }
 
     private updateRegister(id: number, row: number): void {
-        let r = this.settings.rows[row].registers[id];
+        let r = G_settings.rows[row].registers[id];
         if (!r.show) return;
         let nameElement = <HTMLInputElement>document.getElementById(`OG_Register_${row}:${id}_name`);
         let countElement = <HTMLInputElement>document.getElementById(`OG_Register_${row}:${id}_count`);
@@ -178,7 +175,7 @@ class FormGenerator {
             <h3>Conductor:</h3>
             <p>Position: 
                 <input type="number" id="OG_Conductor_Pos" class="w3-input"
-                    name="Position Conductor" value="${this.settings.conductorPos}" oninput="OG_update()" size="5">
+                    name="Position Conductor" value="${G_settings.conductorPos}" oninput="OG_update()" size="5">
                 0 equals circle center point
             </p></div>`;
         return form;
@@ -186,6 +183,6 @@ class FormGenerator {
 
     private updateSettingsConductor(): void {
         let posElement = <HTMLInputElement>document.getElementById("OG_Conductor_Pos");
-        this.settings.conductorPos = Number(posElement.value);
+        G_settings.conductorPos = Number(posElement.value);
     }
 }
