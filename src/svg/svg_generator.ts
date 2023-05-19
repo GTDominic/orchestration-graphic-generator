@@ -4,6 +4,7 @@ class SVGGenerator {
     constructor(refId: string) {
         document.getElementById(refId).innerHTML = "";
         this.svg = this.addElement("svg", {}, document.getElementById(refId));
+        this.svg.setAttribute("xmlns", "http://www.w3.org/2000/svg")
     }
 
     public addCircle(cx: number, cy: number, r: number, styleObj: { [index: string]: any }): void {
