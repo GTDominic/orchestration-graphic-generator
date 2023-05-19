@@ -1,9 +1,11 @@
 let form: FormGenerator;
 let jsonHandler: JSONHandler;
+let svgExport: SVGExport;
 
 function OG_main(): void {
     form = new FormGenerator();
     jsonHandler = new JSONHandler();
+    svgExport = new SVGExport();
     new DiagramGenerator();
 }
 
@@ -33,6 +35,7 @@ function OG_move(type: "Row" | "Register", from: number, to: number, row: number
 
 function OG_download(type: "json" | "svg"): void {
     if(type === "json") jsonHandler.export();
+    else svgExport.download();
 }
 
 function OG_import(): void {

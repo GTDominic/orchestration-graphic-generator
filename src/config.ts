@@ -8,6 +8,7 @@ const config: I_Config = {
     jsonImportId: "OG_inputfile",
     errorId: "OG_error",
     jsonDownloadName: "OG_export",
+    svgDownloadName: "OG_export",
     diagramSettings: {
         paddingTopBottom: 30,
         paddingSide: 30,

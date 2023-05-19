@@ -8,6 +8,7 @@ interface I_Config {
     jsonImportId: string;
     errorId: string;
     jsonDownloadName: string;
+    svgDownloadName: string;
     diagramSettings: {
         paddingTopBottom: number;
         paddingSide: number;
