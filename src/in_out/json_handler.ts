@@ -37,7 +37,7 @@ class JSONHandler {
         }
         G_settings = (<{ name: string; version: string; content: I_Settings }>importedObj).content;
         form.draw();
-        let graphic = new DiagramGenerator();
+        new DiagramGenerator();
     }
 
     private handleVersionMismatch(importedObj: Object): boolean {
