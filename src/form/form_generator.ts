@@ -42,7 +42,11 @@ class FormGenerator {
      */
     public add(type: "Row" | "Register", row: number): void {
         if (type === "Row") {
-            G_settings.rows.push({ radius: 0, leftAngle: 90, rightAngle: 90, sync: true, show: true, registers: [] });
+            let radius = G_settings.rows.length === 0 ? 100 : G_settings.rows[G_settings.rows.length - 1].radius + 50;
+            let linked = G_settings.rows.length === 0 ? false : true;
+            let leftAngle = G_settings.rows.length === 0 ? 90 : G_settings.rows[G_settings.rows.length - 1].leftAngle;
+            let rightAngle = G_settings.rows.length === 0 ? 90 : G_settings.rows[G_settings.rows.length - 1].rightAngle;
+            G_settings.rows.push({ radius, linked, leftAngle, rightAngle, sync: true, show: true, registers: [] });
         } else {
             G_settings.rows[row].registers.push({ name: "", count: 0, show: true });
         }
@@ -57,7 +61,16 @@ class FormGenerator {
      */
     public remove(type: "Row" | "Register", row: number, register: number): void {
         if (type === "Row") {
+            let r = G_settings.rows[row].radius;
+            let l = G_settings.rows[row].linked;
             G_settings.rows.splice(row, 1);
+            if (row < G_settings.rows.length) {
+                let e = G_settings.rows[row];
+                if (e.linked === true) {
+                    e.radius = r;
+                    e.linked = l;
+                }
+            }
         } else {
             G_settings.rows[row].registers.splice(register, 1);
         }
@@ -88,14 +101,25 @@ class FormGenerator {
      */
     public move(type: "Row" | "Register", from: number, to: number, row: number) {
         let r: Array<I_RegisterSettings | I_RowSettings>;
+        let r1: number, r2: number, l1: boolean, l2: boolean;
         if (type === "Row") {
             r = G_settings.rows;
+            r1 = (<I_RowSettings>r[from]).radius;
+            r2 = (<I_RowSettings>r[to]).radius;
+            l1 = (<I_RowSettings>r[from]).linked;
+            l2 = (<I_RowSettings>r[to]).linked;
         } else {
             r = G_settings.rows[row].registers;
         }
         let temp = r[from];
         r[from] = r[to];
         r[to] = temp;
+        if (type === "Row") {
+            (<I_RowSettings>r[from]).radius = r1;
+            (<I_RowSettings>r[to]).radius = r2;
+            (<I_RowSettings>r[from]).linked = l1;
+            (<I_RowSettings>r[to]).linked = l2;
+        }
         this.draw();
     }
 
@@ -122,8 +146,13 @@ class FormGenerator {
         if (!r.show) return (form += `</div>`);
         form += `<p>Radius (in px):
                 <input type="number" id="OG_Row_${id}_Radius" class="w3-input"
-                    name="Radius Row" value="${r.radius}" oninput="OG_update()" size="5">
+                    name="Radius Row" value="${r.radius}" oninput="OG_update()" size="5"
+                    ${r.linked ? " disabled" : ""}>
             </p>
+            <p><input type="checkbox" id="OG_Row_${id}_Linked" class="w3-check"
+                    name="Link to previous row"${r.linked ? " checked" : ""}${id === 0 ? " disabled" : ""}
+                    onchange="OG_update(1)">
+                <label> Link Radius to previous row</label>
             <p>Left Border (in °):
                 <input type="number" id="OG_Row_${id}_LeftBorder" class="w3-input"
                     name="Left Border Row" value="${r.leftAngle}" oninput="OG_update()" size="5">
@@ -150,12 +179,24 @@ class FormGenerator {
      */
     private updateRow(id: number): void {
         let r = G_settings.rows[id];
-        if (!r.show) return;
+        if (!r.show) {
+            if (r.linked && id !== 0) {
+                r.radius = G_settings.rows[id - 1].radius + 50;
+            }
+            return;
+        }
         let radiusElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_Radius`);
         let leftBorderElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_LeftBorder`);
         let rightBorderElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_RightBorder`);
         let syncElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_Sync`);
-        r.radius = Number(radiusElement.value);
+        let linkedElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_Linked`);
+        r.linked = linkedElement.checked;
+        if (r.linked && id !== 0) {
+            r.radius = G_settings.rows[id - 1].radius + 50;
+            radiusElement.value = String(r.radius);
+        } else {
+            r.radius = Number(radiusElement.value);
+        }
         r.leftAngle = Number(leftBorderElement.value);
         r.sync = syncElement.checked;
         if (r.sync) {
@@ -261,7 +302,7 @@ class FormGenerator {
      */
     private sanitizeString(str: string): string {
         str = str.replace(/&/g, "&amp;");
-        str = str.replace("\"","&quot;");
+        str = str.replace('"', "&quot;");
         str = str.replace(/</g, "&lt;");
         str = str.replace(/>/g, "&gt;");
         return str;

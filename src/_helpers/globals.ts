@@ -10,6 +10,7 @@ interface I_Settings {
 
 interface I_RowSettings {
     radius: number;
+    linked: boolean;
     leftAngle: number;
     rightAngle: number;
     sync: boolean;
