@@ -210,8 +210,8 @@ class FormGenerator {
         if (!r.show) return;
         let nameElement = <HTMLInputElement>document.getElementById(`OG_Register_${row}:${id}_name`);
         let countElement = <HTMLInputElement>document.getElementById(`OG_Register_${row}:${id}_count`);
-        r.name = nameElement.value;
-        document.getElementById(`OG_Register_${row}:${id}_nameTag`).innerText = r.name ? r.name : `Register ${id + 1}`;
+        r.name = this.sanitizeString(nameElement.value);
+        document.getElementById(`OG_Register_${row}:${id}_nameTag`).innerHTML = r.name ? r.name : `Register ${id + 1}`;
         r.count = Number(countElement.value);
     }
 
@@ -252,5 +252,17 @@ class FormGenerator {
     private updateSettingsConductor(): void {
         let posElement = <HTMLInputElement>document.getElementById("OG_Conductor_Pos");
         G_settings.conductorPos = Number(posElement.value);
+    }
+
+    /**
+     * Replaces common html characters
+     * @param str unsanitized string
+     * @returns sanitized string
+     */
+    private sanitizeString(str: string): string {
+        str = str.replace(/&/g, "&amp;");
+        str = str.replace(/</g, "&lt;");
+        str = str.replace(/>/g, "&gt;");
+        return str;
     }
 }
