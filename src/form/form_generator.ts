@@ -261,6 +261,7 @@ class FormGenerator {
      */
     private sanitizeString(str: string): string {
         str = str.replace(/&/g, "&amp;");
+        str = str.replace("\"","&quot;");
         str = str.replace(/</g, "&lt;");
         str = str.replace(/>/g, "&gt;");
         return str;
