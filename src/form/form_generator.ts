@@ -1,8 +1,14 @@
 class FormGenerator {
+    /**
+     * Generates a form and draws it
+     */
     constructor() {
         this.draw();
     }
 
+    /**
+     * (Re)draws the form
+     */
     public draw(): void {
         let form = `<div class="w3-container w3-indigo"><h1>Orchestration Graphic Generator</h1></div>`;
         form += `<div class="w3-container w3-teal"><h2>Rows:</h2>`;
@@ -18,6 +24,10 @@ class FormGenerator {
         document.getElementById(config.formAnchorId).innerHTML = form;
     }
 
+    /**
+     * Updates the settings and form
+     * @param mode 1 for full update (redraw) | 0 for light update (only updates settings object)
+     */
     public update(mode: 0 | 1): void {
         for (let i = 0; i < G_settings.rows.length; i++) this.updateRow(i);
         this.updateSettings();
@@ -25,6 +35,11 @@ class FormGenerator {
         if (mode === 1) this.draw();
     }
 
+    /**
+     * Adds a row or register
+     * @param type "Row" | "Register"
+     * @param row If "Register" row defines the row where the register is added to
+     */
     public add(type: "Row" | "Register", row: number): void {
         if (type === "Row") {
             G_settings.rows.push({ radius: 0, leftAngle: 90, rightAngle: 90, sync: true, show: true, registers: [] });
@@ -34,6 +49,12 @@ class FormGenerator {
         this.draw();
     }
 
+    /**
+     * Removes a row or register
+     * @param type "Row" | "Register"
+     * @param row Defines the row that is removed or where the register is removed from
+     * @param register If "Register" defines the register to be removed
+     */
     public remove(type: "Row" | "Register", row: number, register: number): void {
         if (type === "Row") {
             G_settings.rows.splice(row, 1);
@@ -43,6 +64,12 @@ class FormGenerator {
         this.draw();
     }
 
+    /**
+     * Toggles the show hide attribute of a register/row
+     * @param type "Row" | "Register"
+     * @param row Row that should be toggled or the row where the register should be toggled
+     * @param register If "Register" defines the register to be toggled
+     */
     public showHide(type: "Row" | "Register", row: number, register: number) {
         if (type === "Row") {
             G_settings.rows[row].show = !G_settings.rows[row].show;
@@ -52,6 +79,13 @@ class FormGenerator {
         this.draw();
     }
 
+    /**
+     * Moves a Row or Register from one place to another (registers cannot jump rows)
+     * @param type "Row" | "Register"
+     * @param from fromId
+     * @param to toId
+     * @param row If "Register" defines the row where the register is moved in
+     */
     public move(type: "Row" | "Register", from: number, to: number, row: number) {
         let r: Array<I_RegisterSettings | I_RowSettings>;
         if (type === "Row") {
@@ -65,6 +99,11 @@ class FormGenerator {
         this.draw();
     }
 
+    /**
+     * Renders the form for a row
+     * @param id Id of the row
+     * @returns html form string
+     */
     private drawRow(id: number): string {
         let r = G_settings.rows[id];
         let form = `
@@ -105,6 +144,10 @@ class FormGenerator {
         return form;
     }
 
+    /**
+     * Updates the settings for a row
+     * @param id Row id
+     */
     private updateRow(id: number): void {
         let r = G_settings.rows[id];
         if (!r.show) return;
@@ -124,6 +167,12 @@ class FormGenerator {
         for (let i = 0; i < r.registers.length; i++) this.updateRegister(i, id);
     }
 
+    /**
+     * Renders the form for a register
+     * @param id Id of the register
+     * @param row Row that the register is in
+     * @returns html form string
+     */
     private drawRegister(id: number, row: number): string {
         let r = G_settings.rows[row].registers[id];
         let form = `
@@ -151,6 +200,11 @@ class FormGenerator {
         return form;
     }
 
+    /**
+     * Updates the settings for a register
+     * @param id Id of the register
+     * @param row Row that the register is in
+     */
     private updateRegister(id: number, row: number): void {
         let r = G_settings.rows[row].registers[id];
         if (!r.show) return;
@@ -161,15 +215,26 @@ class FormGenerator {
         r.count = Number(countElement.value);
     }
 
+    /**
+     * Renders the general settings
+     * @returns html form string
+     */
     private drawSettings(): string {
         let form = this.drawSettingsConductor();
         return form;
     }
 
+    /**
+     * Updates the general settings
+     */
     private updateSettings(): void {
         this.updateSettingsConductor();
     }
 
+    /**
+     * Renders the settings for the conductor
+     * @returns html form string
+     */
     private drawSettingsConductor(): string {
         let form = `<div class="w3-panel w3-light-green w3-card-4">
             <h3>Conductor:</h3>
@@ -181,6 +246,9 @@ class FormGenerator {
         return form;
     }
 
+    /**
+     * Updates the settings for the conductor
+     */
     private updateSettingsConductor(): void {
         let posElement = <HTMLInputElement>document.getElementById("OG_Conductor_Pos");
         G_settings.conductorPos = Number(posElement.value);

@@ -1,4 +1,7 @@
 class SVGExport {
+    /**
+     * Downloads the svg as graphic
+     */
     public download() {
         let svg = document.getElementById(config.graphicAnchorId).innerHTML;
         let a = document.createElement("a");

@@ -4,6 +4,9 @@ class DiagramGenerator {
     private currentColor: number = 0;
     private style: { [index: string]: { [index: string]: string } } = {};
 
+    /**
+     * Draws a new Diagram
+     */
     constructor() {
         this.setStyleClasses();
         this.svg = new SVGGenerator(config.graphicAnchorId);
@@ -13,6 +16,9 @@ class DiagramGenerator {
         this.drawConductor();
     }
 
+    /**
+     * Sets the style classes to be used elsewhere in the class
+     */
     private setStyleClasses(): void {
         this.style.bordered = {
             "stroke": "black",
@@ -28,6 +34,9 @@ class DiagramGenerator {
         }
     }
 
+    /**
+     * Calculates the size of the graphic
+     */
     private calculateSize(): void {
         let biggestRadius = 0;
         let xSize = 0;
@@ -39,12 +48,19 @@ class DiagramGenerator {
         this.svg.setSize(xSize, ySize);
     }
 
+    /**
+     * Draws rows as circles
+     */
     private drawCircles(): void {
         for (let row of G_settings.rows) {
             this.svg.addCircle(this.center.x, this.center.y, row.radius, this.style.bordered);
         }
     }
 
+    /**
+     * Draws the registers as circleparts
+     * @param row The row that is added
+     */
     private drawRegisters(row: I_RowSettings): void {
         let players = this.getRowPlayers(row);
         if (players === 0) return;
@@ -87,10 +103,19 @@ class DiagramGenerator {
         }
     }
 
+    /**
+     * Draws the conductor dot in the center
+     */
     private drawConductor(): void {
         this.svg.addCircle(this.center.x, this.center.y - G_settings.conductorPos, config.diagramSettings.conductorSize, this.style.dot);
     }
 
+    /**
+     * Calculates coordinates with given angle and radius
+     * @param angle angle in degrees
+     * @param radius radius of the circle
+     * @returns x and y Coordinates of the point
+     */
     private findCoordinatesFromAngle(angle: number, radius: number): { x: number; y: number } {
         angle += 180;
         angle *= Math.PI / 180;
@@ -99,6 +124,10 @@ class DiagramGenerator {
         return { x, y };
     }
 
+    /**
+     * Finds the lowest point of the graphic
+     * @returns Lowest point of the graphic
+     */
     private findLowestPoint(): number {
         let conductorPos = this.center.y - G_settings.conductorPos;
         let lowestLeft = 0;
@@ -114,6 +143,11 @@ class DiagramGenerator {
         return lowest > conductorPos ? lowest : conductorPos;
     }
 
+    /**
+     * Counts the players in a row
+     * @param row row to count
+     * @returns count of players
+     */
     private getRowPlayers(row: I_RowSettings): number {
         let players = 0;
         for (let reg of row.registers) players += reg.count;
