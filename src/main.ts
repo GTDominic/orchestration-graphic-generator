@@ -3,6 +3,7 @@ let jsonHandler: JSONHandler;
 let svgExport: SVGExport;
 
 function OG_main(): void {
+    loadPage();
     form = new FormGenerator();
     jsonHandler = new JSONHandler();
     svgExport = new SVGExport();
@@ -34,10 +35,17 @@ function OG_move(type: "Row" | "Register", from: number, to: number, row: number
 }
 
 function OG_download(type: "json" | "svg"): void {
-    if(type === "json") jsonHandler.export();
+    if (type === "json") jsonHandler.export();
     else svgExport.download();
 }
 
 function OG_import(): void {
     jsonHandler.import();
+}
+
+function loadPage(): void {
+    let year = new Date().getFullYear();
+    document.getElementById("year").innerText = String(year);
+    document.getElementById("version").innerText = config.version;
+    if (config.environment !== "production") document.getElementById("environment").innerText = `| Environment: ${config.environment}`;
 }

@@ -24,14 +24,16 @@ class JSONHandler {
         version = (<{ name: string; version: string; content: I_Settings }>importedObj).version;
         name = (<{ name: string; version: string; content: I_Settings }>importedObj).name;
         if (!version || name !== config.name) {
-            document.getElementById(config.errorId).innerHTML = "<p>Imported JSON does not match Environment</p>";
+            document.getElementById(config.errorId).innerHTML = `<div class="w3-panel w3-card-4 w3-red">
+                <p>Imported JSON does not match Environment</p>
+            </div>`;
             return;
         }
         if (version !== config.version) {
             if (!this.handleVersionMismatch(importedObj)) {
-                document.getElementById(config.errorId).innerHTML = `
-                    <p>File was exported in version ${version} but your environment runs on ${config.version}. Migration is not possible.
-                `;
+                document.getElementById(config.errorId).innerHTML = `<div class="w3-panel w3-card-4 w3-red">
+                    <p>File was exported in version ${version} but your environment runs on ${config.version}. Migration is not possible.</p>
+                </div>`;
                 return;
             }
         }

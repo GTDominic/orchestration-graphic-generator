@@ -8,6 +8,12 @@
         <link rel="stylesheet" href="./style.css" />
     </head>
     <body onload="OG_main()">
+        <div class="w3-top w3-card-2 navbar">
+            <div class="w3-bar w3-teal w3-left-align">
+                <a href="/" class="w3-bar-item w3-button w3-indigo">Home</a>
+            </div>
+        </div>
+        <div id="spacer-top" class="w3-display-container"></div>
         <div class="w3-row">
             <div class="w3-half" id="form"></div>
             <div class="w3-half">
@@ -15,9 +21,21 @@
                 <div class="w3-container">
                     <button onclick="OG_download('json')" class="w3-button w3-teal">Download JSON</button>
                     <button onclick="OG_download('svg')" class="w3-button w3-teal">Download SVG</button>
-                    <input type="file" id="OG_inputfile" oninput="OG_import()" class="w3-button w3-teal">
+                    <input type="file" id="OG_inputfile" oninput="OG_import()" class="w3-button w3-teal" />
                 </div>
-                <div class="w3-panel w3-red" id="OG_error"></div>
+                <div id="OG_error"></div>
+            </div>
+        </div>
+        <div id="spacer-bottom" class="w3-display-container"></div>
+        <div class="w3-bottom w3-card-2 navbar">
+            <div class="w3-bar w3-teal">
+                <p class="w3-right w3-margin-right">
+                    ©
+                    <span id="year"></span>
+                    Dominic Seithel | Version:
+                    <span id="version"></span>
+                    <span id="environment"></span>
+                </p>
             </div>
         </div>
     </body>
