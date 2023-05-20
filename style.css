@@ -1,0 +1,11 @@
+#spacer-top {
+    height: 38.5px;
+}
+
+#spacer-bottom {
+    height: 52px;
+}
+
+.navbar {
+    z-index: 99;
+}

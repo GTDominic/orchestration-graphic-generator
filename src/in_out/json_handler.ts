@@ -1,4 +1,7 @@
 class JSONHandler {
+    /**
+     * Exports the graphic as json
+     */
     public export(): void {
         let content = { name: config.name, version: config.version, content: G_settings };
         let a = document.createElement("a");
@@ -8,6 +11,9 @@ class JSONHandler {
         a.click();
     }
 
+    /**
+     * Imports the settings as json
+     */
     public import(): void {
         document.getElementById(config.errorId).innerHTML = "";
         let file = (<HTMLInputElement>document.getElementById(config.jsonImportId)).files[0];
@@ -17,6 +23,10 @@ class JSONHandler {
         reader.readAsText(file);
     }
 
+    /**
+     * Parses the data and checks if json file is correct
+     * @param content json file content as string
+     */
     private parseData(content: string): void {
         let importedObj: Object = JSON.parse(content);
         let version: string;
@@ -24,14 +34,16 @@ class JSONHandler {
         version = (<{ name: string; version: string; content: I_Settings }>importedObj).version;
         name = (<{ name: string; version: string; content: I_Settings }>importedObj).name;
         if (!version || name !== config.name) {
-            document.getElementById(config.errorId).innerHTML = "<p>Imported JSON does not match Environment</p>";
+            document.getElementById(config.errorId).innerHTML = `<div class="w3-panel w3-card-4 w3-red">
+                <p>Imported JSON does not match Environment</p>
+            </div>`;
             return;
         }
         if (version !== config.version) {
             if (!this.handleVersionMismatch(importedObj)) {
-                document.getElementById(config.errorId).innerHTML = `
-                    <p>File was exported in version ${version} but your environment runs on ${config.version}. Migration is not possible.
-                `;
+                document.getElementById(config.errorId).innerHTML = `<div class="w3-panel w3-card-4 w3-red">
+                    <p>File was exported in version ${version} but your environment runs on ${config.version}. Migration is not possible.</p>
+                </div>`;
                 return;
             }
         }
@@ -40,6 +52,11 @@ class JSONHandler {
         new DiagramGenerator();
     }
 
+    /**
+     * Handles Mismatches of environment version and file export version
+     * @param importedObj Json content as object
+     * @returns true if mismatched could be handled / false otherwise
+     */
     private handleVersionMismatch(importedObj: Object): boolean {
         // After version 1.0.0 Mismatched versions will be handled here
         return false;
