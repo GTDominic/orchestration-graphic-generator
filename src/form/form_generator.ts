@@ -46,7 +46,7 @@ class FormGenerator {
             let linked = G_settings.rows.length === 0 ? false : true;
             let leftAngle = G_settings.rows.length === 0 ? 90 : G_settings.rows[G_settings.rows.length - 1].leftAngle;
             let rightAngle = G_settings.rows.length === 0 ? 90 : G_settings.rows[G_settings.rows.length - 1].rightAngle;
-            G_settings.rows.push({ radius, linked, leftAngle, rightAngle, sync: true, show: true, registers: [] });
+            G_settings.rows.push({ radius, linked, leftAngle, leftAngleBorder: false, rightAngle, rightAngleBorder: false, sync: true, show: true, registers: [] });
         } else {
             G_settings.rows[row].registers.push({ name: "", count: 0, show: true });
         }
@@ -157,11 +157,23 @@ class FormGenerator {
                 <input type="number" id="OG_Row_${id}_LeftBorder" class="w3-input"
                     name="Left Border Row" value="${r.leftAngle}" oninput="OG_update()">
             </p>
+            <p><input type="checkbox" id="OG_Row_${id}_LeftAngleBorder" class="w3-check"
+                    name="Left Angle by Border"${r.leftAngleBorder ? " checked" : ""} onchange="OG_update()">
+                <label id="OG_Row_${id}_LeftAngleBorder_Label">
+                    Angle by Border or Player (currently ${r.leftAngleBorder ? "Player" : "Border"})
+                </label>
+            </p>
             <p>Right Border (in °):
                 <input type="number" id="OG_Row_${id}_RightBorder" class="w3-input"
                     name="Right Border Row" value="${r.rightAngle}" oninput="OG_update()"`;
         if (r.sync) form += ` disabled`;
         form += `>
+            </p>
+            <p><input type="checkbox" id="OG_Row_${id}_RightAngleBorder" class="w3-check"
+                    name="Right Angle by Border"${r.rightAngleBorder ? " checked" : ""}${r.sync ? " disabled" : ""} onchange="OG_update()">
+                <label id="OG_Row_${id}_RightAngleBorder_Label">
+                    Angle by Border or Player (currently ${r.rightAngleBorder ? "Player" : "Border"})
+                </label>
             </p>
             <p><input type="checkbox" id="OG_Row_${id}_Sync" class="w3-check"
                     name="Sync Border Row"`;
@@ -187,7 +199,11 @@ class FormGenerator {
         }
         let radiusElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_Radius`);
         let leftBorderElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_LeftBorder`);
+        let leftTypeElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_LeftAngleBorder`);
+        let leftTypeLabel = document.getElementById(`OG_Row_${id}_LeftAngleBorder_Label`);
         let rightBorderElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_RightBorder`);
+        let rightTypeElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_RightAngleBorder`);
+        let rightTypeLabel = document.getElementById(`OG_Row_${id}_RightAngleBorder_Label`);
         let syncElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_Sync`);
         let linkedElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_Linked`);
         r.linked = linkedElement.checked;
@@ -198,12 +214,19 @@ class FormGenerator {
             r.radius = Number(radiusElement.value);
         }
         r.leftAngle = Number(leftBorderElement.value);
+        r.leftAngleBorder = leftTypeElement.checked;
+        leftTypeLabel.innerText = ` Angle by Border or Player (currently ${r.leftAngleBorder ? "Player" : "Border"})`;
         r.sync = syncElement.checked;
         if (r.sync) {
-            r.rightAngle = Number(leftBorderElement.value);
+            r.rightAngle = r.leftAngle;
             rightBorderElement.value = String(r.rightAngle);
+            r.rightAngleBorder = r.leftAngleBorder;
+            rightTypeLabel.innerText = ` Angle by Border or Player (currently ${r.rightAngleBorder ? "Player" : "Border"})`;
+            rightTypeElement.checked = r.leftAngleBorder;
         } else {
             r.rightAngle = Number(rightBorderElement.value);
+            r.rightAngleBorder = rightTypeElement.checked;
+            rightTypeLabel.innerText = ` Angle by Border or Player (currently ${r.rightAngleBorder ? "Player" : "Border"})`;
         }
         for (let i = 0; i < r.registers.length; i++) this.updateRegister(i, id);
     }

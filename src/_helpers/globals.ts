@@ -16,7 +16,9 @@ interface I_RowSettings {
     radius: number;
     linked: boolean;
     leftAngle: number;
+    leftAngleBorder: boolean;
     rightAngle: number;
+    rightAngleBorder: boolean;
     sync: boolean;
     show: boolean;
     registers: Array<I_RegisterSettings>;

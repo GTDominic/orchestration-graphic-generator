@@ -21,17 +21,17 @@ class DiagramGenerator {
      */
     private setStyleClasses(): void {
         this.style.bordered = {
-            "stroke": "black",
+            stroke: "black",
             "stroke-width": "2px",
-            "fill": "none",
-        }
+            fill: "none",
+        };
         this.style.dot = {
-            "fill": "red",
-            "stroke": "none",
-        }
+            fill: "red",
+            stroke: "none",
+        };
         this.style.registerBack = {
-            "stroke": "none",
-        }
+            stroke: "none",
+        };
     }
 
     /**
@@ -65,15 +65,17 @@ class DiagramGenerator {
         let players = this.getRowPlayers(row);
         if (players === 0) return;
         let playerAngles: Array<number> = [];
-        let borderAngles: Array<number> = [-row.leftAngle];
-        let distance = (row.leftAngle + row.rightAngle) / players;
-        let tempAngle = distance / 2 - row.leftAngle;
+        let borderAngles: Array<number> = [];
+        let a = (row.leftAngleBorder ? 0.5 : 0) + (row.rightAngleBorder ? 0.5 : 0);
+        let distance = (row.leftAngle + row.rightAngle) / (players - a);
+        let tempAngle = (row.leftAngleBorder ? 0 : distance / 2) - row.leftAngle;
         for (let i = 0; i < players; i++) {
             playerAngles.push(tempAngle);
             tempAngle += distance;
         }
         if (config.environment === "dev" && config.debug) console.log(playerAngles);
-        tempAngle = -row.leftAngle;
+        tempAngle = -row.leftAngle - (row.leftAngleBorder ? distance / 2 : 0);
+        borderAngles.push(tempAngle);
         for (let reg of row.registers) {
             // Skip registers without people
             if (reg.count === 0) continue;
@@ -135,8 +137,24 @@ class DiagramGenerator {
         let lowestRight = 0;
         let lowest = 0;
         for (let row of G_settings.rows) {
-            let left = this.findCoordinatesFromAngle(-row.leftAngle, row.radius).y;
-            let right = this.findCoordinatesFromAngle(row.rightAngle, row.radius).y;
+            let left, right, leftAngle, rightAngle;
+            let players = this.getRowPlayers(row);
+            if (players !== 0) {
+                let a = (row.leftAngleBorder ? 0.5 : 0) + (row.rightAngleBorder ? 0.5 : 0);
+                let distance = (row.leftAngle + row.rightAngle) / (players - a);
+                leftAngle = -(row.leftAngleBorder ? row.leftAngle + distance / 2 : row.leftAngle);
+                rightAngle = row.rightAngleBorder ? row.rightAngle + distance / 2 : row.rightAngle;
+            } else {
+                leftAngle = -row.leftAngle;
+                rightAngle = row.rightAngle;
+            }
+            if (row.leftAngle > 180 || row.rightAngle > 180) {
+                left = this.findCoordinatesFromAngle(180, row.radius).y;
+                right = left;
+            } else {
+                left = this.findCoordinatesFromAngle(leftAngle, row.radius).y;
+                right = this.findCoordinatesFromAngle(rightAngle, row.radius).y;
+            }
             if (left > lowestLeft) lowestLeft = left;
             if (right > lowestRight) lowestRight = right;
         }
