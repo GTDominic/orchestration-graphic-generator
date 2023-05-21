@@ -84,12 +84,13 @@ class DiagramGenerator {
         for (let i = 0; i < borderAngles.length - 1; i++) {
             let rO = row.radius + config.diagramSettings.registerPadding;
             let rI = row.radius - config.diagramSettings.registerPadding;
+            let over = -borderAngles[i] + borderAngles[i + 1] > 180 ? 1 : 0;
             let p1 = this.findCoordinatesFromAngle(borderAngles[i], rO);
             let p2 = this.findCoordinatesFromAngle(borderAngles[i + 1], rO);
             let p3 = this.findCoordinatesFromAngle(borderAngles[i + 1], rI);
             let p4 = this.findCoordinatesFromAngle(borderAngles[i], rI);
-            let d = `M${p1.x} ${p1.y} A${rO} ${rO} 0 0 1 ${p2.x} ${p2.y} 
-                L${p3.x} ${p3.y} A${rI} ${rI} 0 0 0 ${p4.x} ${p4.y} Z`;
+            let d = `M${p1.x} ${p1.y} A${rO} ${rO} 0 ${over} 1 ${p2.x} ${p2.y} 
+                L${p3.x} ${p3.y} A${rI} ${rI} 0 ${over} 0 ${p4.x} ${p4.y} Z`;
             let color = config.diagramSettings.colors[this.currentColor];
             this.currentColor++;
             if (this.currentColor === config.diagramSettings.colors.length) this.currentColor = 0;
