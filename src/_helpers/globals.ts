@@ -1,11 +1,15 @@
 let G_settings: I_Settings = {
     rows: [],
     conductorPos: 0,
+    conductorSize: 20,
+    playerSize: 10,
 };
 
 interface I_Settings {
     rows: Array<I_RowSettings>;
     conductorPos: number;
+    conductorSize: number;
+    playerSize: number;
 }
 
 interface I_RowSettings {

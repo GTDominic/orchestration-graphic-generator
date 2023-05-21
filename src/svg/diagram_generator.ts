@@ -100,7 +100,7 @@ class DiagramGenerator {
         }
         for (let angle of playerAngles) {
             let position = this.findCoordinatesFromAngle(angle, row.radius);
-            this.svg.addCircle(position.x, position.y, config.diagramSettings.playerSize, this.style.dot);
+            this.svg.addCircle(position.x, position.y, G_settings.playerSize, this.style.dot);
         }
     }
 
@@ -108,7 +108,7 @@ class DiagramGenerator {
      * Draws the conductor dot in the center
      */
     private drawConductor(): void {
-        this.svg.addCircle(this.center.x, this.center.y - G_settings.conductorPos, config.diagramSettings.conductorSize, this.style.dot);
+        this.svg.addCircle(this.center.x, this.center.y - G_settings.conductorPos, G_settings.conductorSize, this.style.dot);
     }
 
     /**

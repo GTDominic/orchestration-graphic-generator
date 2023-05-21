@@ -12,8 +12,6 @@ interface I_Config {
     diagramSettings: {
         paddingTopBottom: number;
         paddingSide: number;
-        conductorSize: number;
-        playerSize: number;
         registerPadding: number;
         drawCircles: boolean;
         colors: Array<string>;

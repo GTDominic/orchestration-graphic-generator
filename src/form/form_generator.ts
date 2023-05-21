@@ -146,7 +146,7 @@ class FormGenerator {
         if (!r.show) return (form += `</div>`);
         form += `<p>Radius (in px):
                 <input type="number" id="OG_Row_${id}_Radius" class="w3-input"
-                    name="Radius Row" value="${r.radius}" oninput="OG_update()" size="5"
+                    name="Radius Row" value="${r.radius}" oninput="OG_update()"
                     ${r.linked ? " disabled" : ""}>
             </p>
             <p><input type="checkbox" id="OG_Row_${id}_Linked" class="w3-check"
@@ -155,11 +155,11 @@ class FormGenerator {
                 <label> Link Radius to previous row</label>
             <p>Left Border (in °):
                 <input type="number" id="OG_Row_${id}_LeftBorder" class="w3-input"
-                    name="Left Border Row" value="${r.leftAngle}" oninput="OG_update()" size="5">
+                    name="Left Border Row" value="${r.leftAngle}" oninput="OG_update()">
             </p>
             <p>Right Border (in °):
                 <input type="number" id="OG_Row_${id}_RightBorder" class="w3-input"
-                    name="Right Border Row" value="${r.rightAngle}" oninput="OG_update()" size="5"`;
+                    name="Right Border Row" value="${r.rightAngle}" oninput="OG_update()"`;
         if (r.sync) form += ` disabled`;
         form += `>
             </p>
@@ -230,11 +230,11 @@ class FormGenerator {
         if (!r.show) return (form += `</div>`);
         form += `<p>Name:
                 <input type="text" id="OG_Register_${row}:${id}_name" class="w3-input"
-                    name="Name Register" value="${r.name}" oninput="OG_update()" size="20">
+                    name="Name Register" value="${r.name}" oninput="OG_update()">
             </p>
             <p>Count:
                 <input type="number" id="OG_Register_${row}:${id}_count" class="w3-input"
-                    name="Count Register" value="${r.count}" oninput="OG_update()" size="5">
+                    name="Count Register" value="${r.count}" oninput="OG_update()">
             </p>
             </div>
         `;
@@ -262,6 +262,10 @@ class FormGenerator {
      */
     private drawSettings(): string {
         let form = this.drawSettingsConductor();
+        form += `<p>Player size:
+                <input type="number" id="OG_Player_Size" class="w3-input"
+                    name="Size Player" value="${G_settings.playerSize}" oninput="OG_update()">
+            </p>`;
         return form;
     }
 
@@ -270,6 +274,8 @@ class FormGenerator {
      */
     private updateSettings(): void {
         this.updateSettingsConductor();
+        let sizeElement = <HTMLInputElement>document.getElementById("OG_Player_Size");
+        G_settings.playerSize = Number(sizeElement.value);
     }
 
     /**
@@ -281,8 +287,12 @@ class FormGenerator {
             <h3>Conductor:</h3>
             <p>Position: 
                 <input type="number" id="OG_Conductor_Pos" class="w3-input"
-                    name="Position Conductor" value="${G_settings.conductorPos}" oninput="OG_update()" size="5">
+                    name="Position Conductor" value="${G_settings.conductorPos}" oninput="OG_update()">
                 0 equals circle center point
+            </p>
+            <p>Size:
+                <input type="number" id="OG_Conductor_Size" class="w3-input"
+                    name="Size Conductor" value="${G_settings.conductorSize}" oninput="OG_update()">
             </p></div>`;
         return form;
     }
@@ -292,7 +302,9 @@ class FormGenerator {
      */
     private updateSettingsConductor(): void {
         let posElement = <HTMLInputElement>document.getElementById("OG_Conductor_Pos");
+        let sizeElement = <HTMLInputElement>document.getElementById("OG_Conductor_Size");
         G_settings.conductorPos = Number(posElement.value);
+        G_settings.conductorSize = Number(sizeElement.value);
     }
 
     /**
