@@ -6,6 +6,20 @@
     height: 52px;
 }
 
+#svg_out {
+    margin-top: 80px;
+}
+
+#OG_inputfile {
+    opacity: 0;
+    width: 0px;
+    cursor: default;
+}
+
+#OG_inputfile_label:hover {
+    cursor: pointer;
+}
+
 .navbar {
     z-index: 99;
 }
