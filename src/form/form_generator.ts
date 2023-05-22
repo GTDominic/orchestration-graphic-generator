@@ -46,9 +46,11 @@ class FormGenerator {
             let linked = G_settings.rows.length === 0 ? false : true;
             let leftAngle = G_settings.rows.length === 0 ? 90 : G_settings.rows[G_settings.rows.length - 1].leftAngle;
             let rightAngle = G_settings.rows.length === 0 ? 90 : G_settings.rows[G_settings.rows.length - 1].rightAngle;
-            G_settings.rows.push({ radius, linked, leftAngle, leftAngleBorder: false, rightAngle, rightAngleBorder: false, sync: true, show: true, registers: [] });
+            let leftAngleBorder = G_settings.rows.length === 0 ? false : G_settings.rows[G_settings.rows.length - 1].leftAngleBorder;
+            let rightAngleBorder = G_settings.rows.length === 0 ? false : G_settings.rows[G_settings.rows.length - 1].rightAngleBorder;
+            G_settings.rows.push({ radius, linked, leftAngle, leftAngleBorder, rightAngle, rightAngleBorder, sync: true, show: true, registers: [] });
         } else {
-            G_settings.rows[row].registers.push({ name: "", count: 0, show: true });
+            G_settings.rows[row].registers.push({ name: "", count: 1, show: true });
         }
         this.draw();
     }
@@ -146,7 +148,7 @@ class FormGenerator {
         if (!r.show) return (form += `</div>`);
         form += `<p>Radius (in px):
                 <input type="number" id="OG_Row_${id}_Radius" class="w3-input"
-                    name="Radius Row" value="${r.radius}" oninput="OG_update()"
+                    name="Radius Row" value="${r.radius}" min="1" oninput="OG_update()"
                     ${r.linked ? " disabled" : ""}>
             </p>
             <p><input type="checkbox" id="OG_Row_${id}_Linked" class="w3-check"
@@ -211,7 +213,7 @@ class FormGenerator {
             r.radius = G_settings.rows[id - 1].radius + 50;
             radiusElement.value = String(r.radius);
         } else {
-            r.radius = Number(radiusElement.value);
+            r.radius = this.handleNumber(radiusElement);
         }
         r.leftAngle = Number(leftBorderElement.value);
         r.leftAngleBorder = leftTypeElement.checked;
@@ -257,7 +259,7 @@ class FormGenerator {
             </p>
             <p>Count:
                 <input type="number" id="OG_Register_${row}:${id}_count" class="w3-input"
-                    name="Count Register" value="${r.count}" oninput="OG_update()">
+                    name="Count Register" value="${r.count}" min="1" oninput="OG_update()">
             </p>
             </div>
         `;
@@ -276,7 +278,7 @@ class FormGenerator {
         let countElement = <HTMLInputElement>document.getElementById(`OG_Register_${row}:${id}_count`);
         r.name = this.sanitizeString(nameElement.value);
         document.getElementById(`OG_Register_${row}:${id}_nameTag`).innerHTML = r.name ? r.name : `Register ${id + 1}`;
-        r.count = Number(countElement.value);
+        r.count = this.handleNumber(countElement);
     }
 
     /**
@@ -287,7 +289,7 @@ class FormGenerator {
         let form = this.drawSettingsConductor();
         form += `<p>Player size:
                 <input type="number" id="OG_Player_Size" class="w3-input"
-                    name="Size Player" value="${G_settings.playerSize}" oninput="OG_update()">
+                    name="Size Player" value="${G_settings.playerSize}" min="1" oninput="OG_update()">
             </p>`;
         return form;
     }
@@ -298,7 +300,7 @@ class FormGenerator {
     private updateSettings(): void {
         this.updateSettingsConductor();
         let sizeElement = <HTMLInputElement>document.getElementById("OG_Player_Size");
-        G_settings.playerSize = Number(sizeElement.value);
+        G_settings.playerSize = this.handleNumber(sizeElement);
     }
 
     /**
@@ -315,7 +317,7 @@ class FormGenerator {
             </p>
             <p>Size:
                 <input type="number" id="OG_Conductor_Size" class="w3-input"
-                    name="Size Conductor" value="${G_settings.conductorSize}" oninput="OG_update()">
+                    name="Size Conductor" value="${G_settings.conductorSize}" min="1" oninput="OG_update()">
             </p></div>`;
         return form;
     }
@@ -327,7 +329,7 @@ class FormGenerator {
         let posElement = <HTMLInputElement>document.getElementById("OG_Conductor_Pos");
         let sizeElement = <HTMLInputElement>document.getElementById("OG_Conductor_Size");
         G_settings.conductorPos = Number(posElement.value);
-        G_settings.conductorSize = Number(sizeElement.value);
+        G_settings.conductorSize = this.handleNumber(sizeElement);
     }
 
     /**
@@ -341,5 +343,18 @@ class FormGenerator {
         str = str.replace(/</g, "&lt;");
         str = str.replace(/>/g, "&gt;");
         return str;
+    }
+
+    /**
+     * Handles numbers smaller than minimum and updates the value of the input
+     * @param element HTMLInput of type number
+     * @param min Minimal value (default 1)
+     * @returns value if higher than minimum / minimum if lower
+     */
+    private handleNumber(element: HTMLInputElement, min: number = 1): number {
+        if(element.value === "") return min;
+        if(Number(element.value) >= min) return Number(element.value);
+        element.value = String(min);
+        return 1;
     }
 }
