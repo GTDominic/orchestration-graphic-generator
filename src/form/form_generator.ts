@@ -389,6 +389,7 @@ class FormGenerator {
      * @param register In Register Mode defines register id
      */
     private updateColorPicker(global: boolean, row: number = 0, register: number = 0): void {
+        if (!global && (!G_settings.rows[row].registers[register].show || !G_settings.rows[row].show)) return;
         let colorInput = <HTMLInputElement>document.getElementById(global ? "OG_Color" : `OG_Register_${row}:${register}_color`);
         colorInput.value = colorInput.value.toLowerCase();
         if (!colorInput.value.match(/^#[0-9a-f]{6}$/i)) return;
@@ -431,14 +432,14 @@ class FormGenerator {
      */
     private assignDefaultColor(row: number, register: number): void {
         let freeColors = [...G_settings.colorPalette];
-        for(let row of G_settings.rows) {
+        for (let row of G_settings.rows) {
             for (let reg of row.registers) {
                 let i = freeColors.indexOf(reg.color);
-                if(i !== -1) freeColors.splice(i, 1);
+                if (i !== -1) freeColors.splice(i, 1);
             }
         }
-        if(freeColors.length >= 1) G_settings.rows[row].registers[register].color = freeColors[0];
-        else if(G_settings.colorPalette.length >= 1) G_settings.rows[row].registers[register].color = G_settings.colorPalette[0];
+        if (freeColors.length >= 1) G_settings.rows[row].registers[register].color = freeColors[0];
+        else if (G_settings.colorPalette.length >= 1) G_settings.rows[row].registers[register].color = G_settings.colorPalette[0];
         else G_settings.rows[row].registers[register].color = "#000000";
     }
 

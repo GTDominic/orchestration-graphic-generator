@@ -34,15 +34,9 @@ class DiagramGenerator {
         this.style.noStroke = {
             stroke: "none",
         };
-        this.style.textWhite = {
+        this.style.text = {
             stroke: "none",
             fill: "white",
-            "font-family": "Verdana",
-            "dominant-baseline": "middle",
-        };
-        this.style.textBlack = {
-            stroke: "none",
-            fill: "black",
             "font-family": "Verdana",
             "dominant-baseline": "middle",
         };
@@ -140,7 +134,9 @@ class DiagramGenerator {
                 let style = this.style.noStroke;
                 style.fill = color;
                 this.svg.addRectangle(x, y, width, height, style);
-                this.svg.addText(x + 5, y + height / 2, `${reg.count}x ${reg.name}`, this.style.textWhite);
+                style = this.style.text;
+                style.fill = OGG_getTextColor(color);
+                this.svg.addText(x + 5, y + height / 2, `${reg.count}x ${reg.name}`, style);
                 y = x === config.diagramSettings.paddingSide ? y : y + height;
                 x = x === config.diagramSettings.paddingSide ? config.diagramSettings.paddingSide + width : config.diagramSettings.paddingSide;
             }
