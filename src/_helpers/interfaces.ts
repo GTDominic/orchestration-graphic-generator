@@ -15,8 +15,8 @@ interface I_Config {
         registerPadding: number;
         tableHeight: number;
         drawCircles: boolean;
-        colors: Array<string>;
     };
+    colorPalettes: Array<Array<string>>;
 }
 
-type T_VersionNumber = `${number}.${number}.${number}`;
+type T_VersionNumber = `${number}.${number}.${number}${"" | `-${"dev" | "beta"}`}`;

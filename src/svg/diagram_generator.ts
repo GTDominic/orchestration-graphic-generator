@@ -1,7 +1,6 @@
 class DiagramGenerator {
     private svg: SVGGenerator;
     private center: { x: number; y: number };
-    private currentColor: number = 0;
     private style: { [index: string]: { [index: string]: string } } = {};
     private xSize: number = 0;
     private ySize: number = 0;
@@ -28,22 +27,12 @@ class DiagramGenerator {
             "stroke-width": "2px",
             fill: "none",
         };
-        this.style.dot = {
-            fill: "red",
-            stroke: "none",
-        };
         this.style.noStroke = {
             stroke: "none",
         };
-        this.style.textWhite = {
+        this.style.text = {
             stroke: "none",
             fill: "white",
-            "font-family": "Verdana",
-            "dominant-baseline": "middle",
-        };
-        this.style.textBlack = {
-            stroke: "none",
-            fill: "black",
             "font-family": "Verdana",
             "dominant-baseline": "middle",
         };
@@ -94,8 +83,6 @@ class DiagramGenerator {
         tempAngle = -row.leftAngle - (row.leftAngleBorder ? distance / 2 : 0);
         borderAngles.push(tempAngle);
         for (let reg of row.registers) {
-            // Skip registers without people
-            if (reg.count === 0) continue;
             tempAngle += distance * reg.count;
             borderAngles.push(tempAngle);
         }
@@ -110,16 +97,16 @@ class DiagramGenerator {
             let p4 = this.findCoordinatesFromAngle(borderAngles[i], rI);
             let d = `M${p1.x} ${p1.y} A${rO} ${rO} 0 ${over} 1 ${p2.x} ${p2.y} 
                 L${p3.x} ${p3.y} A${rI} ${rI} 0 ${over} 0 ${p4.x} ${p4.y} Z`;
-            let color = config.diagramSettings.colors[this.currentColor];
-            this.currentColor++;
-            if (this.currentColor === config.diagramSettings.colors.length) this.currentColor = 0;
+            let color = row.registers[i].color;
             let style = this.style.noStroke;
             style.fill = color;
             this.svg.addPath(d, style);
         }
         for (let angle of playerAngles) {
             let position = this.findCoordinatesFromAngle(angle, row.radius);
-            this.svg.addCircle(position.x, position.y, G_settings.playerSize, this.style.dot);
+            let style = this.style.noStroke;
+            style.fill = G_settings.playerColor;
+            this.svg.addCircle(position.x, position.y, G_settings.playerSize, style);
         }
     }
 
@@ -127,7 +114,9 @@ class DiagramGenerator {
      * Draws the conductor dot in the center
      */
     private drawConductor(): void {
-        this.svg.addCircle(this.center.x, this.center.y - G_settings.conductorPos, G_settings.conductorSize, this.style.dot);
+        let style = this.style.noStroke;
+        style.fill = G_settings.conductorColor;
+        this.svg.addCircle(this.center.x, this.center.y - G_settings.conductorPos, G_settings.conductorSize, style);
     }
 
     /**
@@ -139,16 +128,15 @@ class DiagramGenerator {
         let x = config.diagramSettings.paddingSide;
         const width = this.xSize / 2 - config.diagramSettings.paddingSide;
         const height = config.diagramSettings.tableHeight;
-        this.currentColor = 0;
         for (let row of G_settings.rows) {
             for (let reg of row.registers) {
-                let color = config.diagramSettings.colors[this.currentColor];
-                this.currentColor++;
-                if (this.currentColor === config.diagramSettings.colors.length) this.currentColor = 0;
+                let color = reg.color;
                 let style = this.style.noStroke;
                 style.fill = color;
                 this.svg.addRectangle(x, y, width, height, style);
-                this.svg.addText(x + 5, y + height / 2, `${reg.count}x ${reg.name}`, this.style.textWhite);
+                style = this.style.text;
+                style.fill = OGG_getTextColor(color);
+                this.svg.addText(x + 5, y + height / 2, `${reg.count}x ${reg.name}`, style);
                 y = x === config.diagramSettings.paddingSide ? y : y + height;
                 x = x === config.diagramSettings.paddingSide ? config.diagramSettings.paddingSide + width : config.diagramSettings.paddingSide;
             }
