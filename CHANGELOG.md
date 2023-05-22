@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2023-05-22
+
+### Added
+
+- Register table overview
+
+### Changed
+
+- UI changes (download buttons moved and graphic fixed position)
+- Conductor and Player Size as UI Setting
+- UI setting for border by corner or player
+
+### Fixed
+
+- minimum Value for some settings
+- Circle parts over 180° now rendered correctly
+- String inputs now handle html characters (<>&, etc.) correctly
+
 ## [0.4.0] - 2023-05-20
 
 ### Added
