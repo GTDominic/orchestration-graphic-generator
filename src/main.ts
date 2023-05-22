@@ -50,11 +50,11 @@ function OG_remove(type: "Row" | "Register" | "Color", i: number, register: numb
 
 /**
  * Toggles the show hide attribute of a register/row
- * @param type "Row" | "Register"
+ * @param type "Row" | "Register" | "Palettes"
  * @param row Row that should be toggled or the row where the register should be toggled
  * @param register If "Register" defines the register to be toggled (not needed for "Row")
  */
-function OG_showHide(type: "Row" | "Register", row: number, register: number = 0): void {
+function OG_showHide(type: "Row" | "Register" | "Palettes", row: number, register: number = 0): void {
     form.showHide(type, row, register);
 }
 
@@ -79,6 +79,14 @@ function OG_move(type: "Row" | "Register", from: number, to: number, row: number
 function OG_chooseColor(id: string, row: number, register: number, color: string): void {
     form.chooseColor(id, row, register, color);
     new DiagramGenerator();
+}
+
+/**
+ * Chooses a color palette as base
+ * @param id id of the palette
+ */
+function OG_choosePalette(id: number): void {
+    form.choosePalette(id);
 }
 
 /**

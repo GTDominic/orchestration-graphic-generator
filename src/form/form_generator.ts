@@ -1,5 +1,7 @@
 class FormGenerator {
     private colorPickerIds: Array<string>;
+    private palletesActive: boolean = false;
+    private activePalette: number = null;
 
     /**
      * Generates a form and draws it
@@ -82,23 +84,23 @@ class FormGenerator {
         } else if (type === "Register") {
             G_settings.rows[i].registers.splice(register, 1);
         } else {
-            G_settings.colorPalette.splice(i, 1);
+            G_settings.customColors.splice(i, 1);
         }
         this.draw();
     }
 
     /**
      * Toggles the show hide attribute of a register/row
-     * @param type "Row" | "Register"
+     * @param type "Row" | "Register" | "Palettes"
      * @param row Row that should be toggled or the row where the register should be toggled
      * @param register If "Register" defines the register to be toggled
      */
-    public showHide(type: "Row" | "Register", row: number, register: number) {
+    public showHide(type: "Row" | "Register" | "Palettes", row: number, register: number) {
         if (type === "Row") {
             G_settings.rows[row].show = !G_settings.rows[row].show;
-        } else {
+        } else if (type === "Register") {
             G_settings.rows[row].registers[register].show = !G_settings.rows[row].registers[register].show;
-        }
+        } else this.palletesActive = !this.palletesActive;
         this.draw();
     }
 
@@ -144,6 +146,20 @@ class FormGenerator {
         if (id === "conductor") G_settings.conductorColor = color;
         if (id === "player") G_settings.playerColor = color;
         if (config.environment === "dev" && config.debug) console.log(G_settings);
+        this.draw();
+    }
+
+    /**
+     * Chooses a color palette as base
+     * @param id Id of the color palette
+     */
+    public choosePalette(id: number): void {
+        if (id === null) G_settings.colorPalette = G_settings.customColors;
+        else {
+            G_settings.colorPalette = [...config.colorPalettes[id]];
+            for (let c of G_settings.customColors) G_settings.colorPalette.push(c);
+        }
+        this.activePalette = id;
         this.draw();
     }
 
@@ -310,6 +326,7 @@ class FormGenerator {
      */
     private drawSettings(): string {
         let form = this.drawColorPicker(0, {});
+        form += this.drawColorPalettes();
         form += `<p>Register Name Display Type:
                 <select class="w3-select" id="OG_Display" name="Display Type" onchange="OG_update()">
                     <option value="none"${G_settings.display === "none" ? " selected" : ""}>None</option>
@@ -321,7 +338,7 @@ class FormGenerator {
                 <input type="number" id="OG_Player_Size" class="w3-input"
                     name="Size Player" value="${G_settings.playerSize}" min="1" oninput="OG_update()">
             </p>`;
-            form += this.drawColorPicker(2, {id: "player", bkgColor: G_settings.playerColor});
+        form += this.drawColorPicker(2, { id: "player", bkgColor: G_settings.playerColor });
         return form;
     }
 
@@ -330,7 +347,7 @@ class FormGenerator {
      */
     private updateSettings(): void {
         this.updateSettingsConductor();
-        let color = this.updateColorPicker(2, {id: "player"});
+        let color = this.updateColorPicker(2, { id: "player" });
         if (color) G_settings.playerColor = color;
         this.updateColorPicker(0, {});
         let sizeElement = <HTMLInputElement>document.getElementById("OG_Player_Size");
@@ -355,7 +372,7 @@ class FormGenerator {
                 <input type="number" id="OG_Conductor_Size" class="w3-input"
                     name="Size Conductor" value="${G_settings.conductorSize}" min="1" oninput="OG_update()">
             </p>`;
-        form += this.drawColorPicker(2, {id: "conductor", bkgColor: G_settings.conductorColor});
+        form += this.drawColorPicker(2, { id: "conductor", bkgColor: G_settings.conductorColor });
         form += `</div>`;
         return form;
     }
@@ -364,7 +381,7 @@ class FormGenerator {
      * Updates the settings for the conductor
      */
     private updateSettingsConductor(): void {
-        let color = this.updateColorPicker(2, {id: "conductor"});
+        let color = this.updateColorPicker(2, { id: "conductor" });
         if (color) G_settings.conductorColor = color;
         let posElement = <HTMLInputElement>document.getElementById("OG_Conductor_Pos");
         let sizeElement = <HTMLInputElement>document.getElementById("OG_Conductor_Size");
@@ -381,11 +398,11 @@ class FormGenerator {
     private drawColorPicker(mode: 0 | 1 | 2, attr: { row?: number; register?: number; id?: string; bkgColor?: string }): string {
         let listId = mode === 0 ? "OG_Color_List" : mode === 1 ? `OG_Register_${attr.row}:${attr.register}_colorList` : `OG_Color_List_${attr.id}`;
         if (mode === 2) this.colorPickerIds.push(listId);
-        let form = `<p>Color${mode === 0 ? "s" : ""} (click color to ${mode === 0 ? "remove from list" : "choose"}):
+        let form = `<p>${mode === 0 ? "Custom colors" : "Color"} (click color to ${mode === 0 ? "remove from list" : "choose"}):
             <div class="w3-bar" id="${listId}"
                 style="background-color: ${mode === 0 ? "white" : mode === 1 ? G_settings.rows[attr.row].registers[attr.register].color : attr.bkgColor}">`;
-        for (let i = 0; i < G_settings.colorPalette.length; i++) {
-            let color = G_settings.colorPalette[i];
+        for (let i = 0; i < (mode === 0 ? G_settings.customColors.length : G_settings.colorPalette.length); i++) {
+            let color = mode === 0 ? G_settings.customColors[i] : G_settings.colorPalette[i];
             form += `<div class="w3-bar-item OG_color_element"
                 onclick="${mode === 0 ? `OG_remove('Color', ${i})` : `OG_chooseColor('${attr.id}', ${attr.row}, ${attr.register}, '${color}')`}"
                 style="background-color:${color};color:${OGG_getTextColor(color)}">${color}</div>`;
@@ -404,18 +421,23 @@ class FormGenerator {
      * @param row In Register Mode defines row id
      * @param register In Register Mode defines register id
      */
-    private updateColorPicker(mode: 0 | 1 | 2, attr: { row?: number; register?: number; id?: string; }): string {
+    private updateColorPicker(mode: 0 | 1 | 2, attr: { row?: number; register?: number; id?: string }): string {
         if (mode === 1 && (!G_settings.rows[attr.row].registers[attr.register].show || !G_settings.rows[attr.row].show)) return;
         let id = mode === 0 ? "OG_Color" : mode === 1 ? `OG_Register_${attr.row}:${attr.register}_color` : `OG_Color_${attr.id}`;
         let colorInput = <HTMLInputElement>document.getElementById(id);
         colorInput.value = colorInput.value.toLowerCase();
         if (!colorInput.value.match(/^#[0-9a-f]{6}$/i)) return null;
-        if (G_settings.colorPalette.indexOf(colorInput.value) !== -1) {
+        if (G_settings.customColors.indexOf(colorInput.value) !== -1) {
             colorInput.value = "";
             return null;
         }
         let value = colorInput.value;
-        G_settings.colorPalette.push(value);
+        G_settings.customColors.push(value);
+        if (this.activePalette === null) G_settings.colorPalette = G_settings.customColors;
+        else {
+            G_settings.colorPalette = [...config.colorPalettes[this.activePalette]];
+            for (let c of G_settings.customColors) G_settings.colorPalette.push(c);
+        }
         if (mode === 1) {
             G_settings.rows[attr.row].registers[attr.register].color = value;
             document.getElementById(`OG_Register_${attr.row}:${attr.register}_colorList`).setAttribute("style", `background-color: ${colorInput.value}`);
@@ -425,8 +447,8 @@ class FormGenerator {
         }
         colorInput.value = "";
         let form = "";
-        for (let i = 0; i < G_settings.colorPalette.length; i++) {
-            let color = G_settings.colorPalette[i];
+        for (let i = 0; i < G_settings.customColors.length; i++) {
+            let color = G_settings.customColors[i];
             form += `<div class="w3-bar-item OG_color_element" onclick="OG_remove('Color', ${i})"
                 style="background-color:${color};color:${OGG_getTextColor(color)}">${color}</div>`;
         }
@@ -454,6 +476,30 @@ class FormGenerator {
             document.getElementById(id).innerHTML = form;
         }
         return value;
+    }
+
+    /**
+     * Draws the color picker
+     * @returns HTML Form string
+     */
+    private drawColorPalettes(): string {
+        let form = `<button class="w3-button w3-blue-grey w3-medium" onclick="OG_showHide('Palettes')">`;
+        form += this.palletesActive ? `Hide Palettes &and;` : `Choose Palette Color &or;`;
+        form += `</button>`;
+        if (!this.palletesActive) return form;
+        form += `<div>`;
+        form += `<div class="w3-row w3-margin-top w3-light-green OG_palette" onclick="OG_choosePalette(null)">None</div>`
+        for (let i = 0; i < config.colorPalettes.length; i++) {
+            let palette = config.colorPalettes[i];
+            let size = 100 / palette.length;
+            form += `<div class="w3-row w3-margin-top OG_palette" onclick="OG_choosePalette(${i})">`;
+            for (let c of palette) {
+                form += `<div class="w3-col" style="width:${size}%;background-color:${c};color:${OGG_getTextColor(c)}">${c}</div>`;
+            }
+            form += `</div>`;
+        }
+        form += `</div>`;
+        return form;
     }
 
     /**

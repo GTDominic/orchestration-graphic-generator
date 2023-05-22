@@ -16,7 +16,7 @@
     cursor: default;
 }
 
-#OG_inputfile_label:hover {
+#OG_inputfile_label:hover, .OG_color_element:hover, .OG_palette:hover {
     cursor: pointer;
 }
 
@@ -27,8 +27,4 @@
 .OG_color_element {
     margin: 5px;
     padding: 5px !important;
-}
-
-.OG_color_element:hover {
-    cursor: pointer;
 }

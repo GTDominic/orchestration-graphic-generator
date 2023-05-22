@@ -16,6 +16,7 @@ interface I_Config {
         tableHeight: number;
         drawCircles: boolean;
     };
+    colorPalettes: Array<Array<string>>;
 }
 
 type T_VersionNumber = `${number}.${number}.${number}${"" | `-${"dev" | "beta"}`}`;

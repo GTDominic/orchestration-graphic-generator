@@ -6,7 +6,8 @@ let G_settings: I_Settings = {
     playerSize: 10,
     playerColor: "#aaaaaa",
     display: "none",
-    colorPalette: ["#aa00dd", "#44bb55"],
+    colorPalette: [],
+    customColors: [],
 };
 
 interface I_Settings {
@@ -18,6 +19,7 @@ interface I_Settings {
     playerColor: string;
     display: "none" | "table";
     colorPalette: Array<string>;
+    customColors: Array<string>;
 }
 
 interface I_RowSettings {
