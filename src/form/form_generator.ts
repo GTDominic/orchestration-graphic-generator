@@ -1,4 +1,6 @@
 class FormGenerator {
+    private colorPickerIds: Array<string>;
+
     /**
      * Generates a form and draws it
      */
@@ -10,6 +12,7 @@ class FormGenerator {
      * (Re)draws the form
      */
     public draw(): void {
+        this.colorPickerIds = [];
         let form = `<div class="w3-container w3-indigo"><h1>Orchestration Graphic Generator</h1></div>`;
         form += `<div class="w3-container w3-teal"><h2>Rows:</h2>`;
         for (let i = 0; i < G_settings.rows.length; i++) form += this.drawRow(i);
@@ -136,8 +139,11 @@ class FormGenerator {
      * @param register id of the register
      * @param color html color string
      */
-    public chooseColor(row: number, register: number, color: string): void {
-        G_settings.rows[row].registers[register].color = color;
+    public chooseColor(id: string, row: number, register: number, color: string): void {
+        if (!id) G_settings.rows[row].registers[register].color = color;
+        if (id === "conductor") G_settings.conductorColor = color;
+        if (id === "player") G_settings.playerColor = color;
+        if (config.environment === "dev" && config.debug) console.log(G_settings);
         this.draw();
     }
 
@@ -277,7 +283,7 @@ class FormGenerator {
                 <input type="number" id="OG_Register_${row}:${id}_count" class="w3-input"
                     name="Count Register" value="${r.count}" min="1" oninput="OG_update()">
             </p>`;
-        form += this.drawColorPicker(false, row, id);
+        form += this.drawColorPicker(1, { row, register: id });
         form += `</div>`;
         return form;
     }
@@ -288,7 +294,7 @@ class FormGenerator {
      * @param row Row that the register is in
      */
     private updateRegister(id: number, row: number): void {
-        this.updateColorPicker(false, row, id);
+        this.updateColorPicker(1, { row, register: id });
         let r = G_settings.rows[row].registers[id];
         if (!r.show) return;
         let nameElement = <HTMLInputElement>document.getElementById(`OG_Register_${row}:${id}_name`);
@@ -303,18 +309,19 @@ class FormGenerator {
      * @returns html form string
      */
     private drawSettings(): string {
-        let form = this.drawSettingsConductor();
-        form += `<p>Player Size:
-                <input type="number" id="OG_Player_Size" class="w3-input"
-                    name="Size Player" value="${G_settings.playerSize}" min="1" oninput="OG_update()">
-            </p>
-            <p>Register Name Display Type:
+        let form = this.drawColorPicker(0, {});
+        form += `<p>Register Name Display Type:
                 <select class="w3-select" id="OG_Display" name="Display Type" onchange="OG_update()">
                     <option value="none"${G_settings.display === "none" ? " selected" : ""}>None</option>
                     <option value="table"${G_settings.display === "table" ? " selected" : ""}>Table</option>
                 </select>
             </p>`;
-        form += this.drawColorPicker(true);
+        form += this.drawSettingsConductor();
+        form += `<p>Player Size:
+                <input type="number" id="OG_Player_Size" class="w3-input"
+                    name="Size Player" value="${G_settings.playerSize}" min="1" oninput="OG_update()">
+            </p>`;
+            form += this.drawColorPicker(2, {id: "player", bkgColor: G_settings.playerColor});
         return form;
     }
 
@@ -323,7 +330,9 @@ class FormGenerator {
      */
     private updateSettings(): void {
         this.updateSettingsConductor();
-        this.updateColorPicker(true);
+        let color = this.updateColorPicker(2, {id: "player"});
+        if (color) G_settings.playerColor = color;
+        this.updateColorPicker(0, {});
         let sizeElement = <HTMLInputElement>document.getElementById("OG_Player_Size");
         let displayElement = <HTMLInputElement>document.getElementById("OG_Display");
         G_settings.playerSize = this.handleNumber(sizeElement);
@@ -345,7 +354,9 @@ class FormGenerator {
             <p>Size:
                 <input type="number" id="OG_Conductor_Size" class="w3-input"
                     name="Size Conductor" value="${G_settings.conductorSize}" min="1" oninput="OG_update()">
-            </p></div>`;
+            </p>`;
+        form += this.drawColorPicker(2, {id: "conductor", bkgColor: G_settings.conductorColor});
+        form += `</div>`;
         return form;
     }
 
@@ -353,6 +364,8 @@ class FormGenerator {
      * Updates the settings for the conductor
      */
     private updateSettingsConductor(): void {
+        let color = this.updateColorPicker(2, {id: "conductor"});
+        if (color) G_settings.conductorColor = color;
         let posElement = <HTMLInputElement>document.getElementById("OG_Conductor_Pos");
         let sizeElement = <HTMLInputElement>document.getElementById("OG_Conductor_Size");
         G_settings.conductorPos = Number(posElement.value);
@@ -361,22 +374,25 @@ class FormGenerator {
 
     /**
      * Draws a color picker
-     * @param global Defines wether it is the global or a register specific color picker
-     * @param row In Register Mode defines row id
-     * @param register In Register Mode defines register id
+     * @param mode Mode 0: Global; Mode 1: Register; Mode 2: Identifier
+     * @param attr Defines necessary attributes (Mode 1: Set row and register; Mode 2: Set id and bkg color)
      * @returns html form string
      */
-    private drawColorPicker(global: boolean, row: number = 0, register: number = 0): string {
-        let form = `<p>Colors (click color to ${global ? "remove from list" : "choose"}):
-            <div class="w3-bar" id="${global ? "OG_Color_List" : `OG_Register_${row}:${register}_colorList`}"
-                style="background-color: ${global ? "white" : G_settings.rows[row].registers[register].color}">`;
+    private drawColorPicker(mode: 0 | 1 | 2, attr: { row?: number; register?: number; id?: string; bkgColor?: string }): string {
+        let listId = mode === 0 ? "OG_Color_List" : mode === 1 ? `OG_Register_${attr.row}:${attr.register}_colorList` : `OG_Color_List_${attr.id}`;
+        if (mode === 2) this.colorPickerIds.push(listId);
+        let form = `<p>Colors (click color to ${mode === 0 ? "remove from list" : "choose"}):
+            <div class="w3-bar" id="${listId}"
+                style="background-color: ${mode === 0 ? "white" : mode === 1 ? G_settings.rows[attr.row].registers[attr.register].color : attr.bkgColor}">`;
         for (let i = 0; i < G_settings.colorPalette.length; i++) {
             let color = G_settings.colorPalette[i];
-            form += `<div class="w3-bar-item OG_color_element" onclick="${global ? `OG_remove('Color', ${i})` : `OG_chooseColor(${row}, ${register}, '${color}')`}"
-                    style="background-color:${color};color:${OGG_getTextColor(color)}">${color}</div>`;
+            form += `<div class="w3-bar-item OG_color_element"
+                onclick="${mode === 0 ? `OG_remove('Color', ${i})` : `OG_chooseColor('${attr.id}', ${attr.row}, ${attr.register}, '${color}')`}"
+                style="background-color:${color};color:${OGG_getTextColor(color)}">${color}</div>`;
         }
-        form += `</div><input type="text" id="${global ? "OG_Color" : `OG_Register_${row}:${register}_color`}" class="w3-input w3-margin-top"
-                name="Input Color" oninput="OG_update()">
+        form += `</div><input type="text"
+                id="${mode === 0 ? "OG_Color" : mode === 1 ? `OG_Register_${attr.row}:${attr.register}_color` : `OG_Color_${attr.id}`}"
+                class="w3-input w3-margin-top" name="Input Color" oninput="OG_update()">
             Enter Colors as HTML Color Code (e.g. "#ffffff") in the format "#rrggbb".
         </p>`;
         return form;
@@ -388,19 +404,24 @@ class FormGenerator {
      * @param row In Register Mode defines row id
      * @param register In Register Mode defines register id
      */
-    private updateColorPicker(global: boolean, row: number = 0, register: number = 0): void {
-        if (!global && (!G_settings.rows[row].registers[register].show || !G_settings.rows[row].show)) return;
-        let colorInput = <HTMLInputElement>document.getElementById(global ? "OG_Color" : `OG_Register_${row}:${register}_color`);
+    private updateColorPicker(mode: 0 | 1 | 2, attr: { row?: number; register?: number; id?: string; }): string {
+        if (mode === 1 && (!G_settings.rows[attr.row].registers[attr.register].show || !G_settings.rows[attr.row].show)) return;
+        let id = mode === 0 ? "OG_Color" : mode === 1 ? `OG_Register_${attr.row}:${attr.register}_color` : `OG_Color_${attr.id}`;
+        let colorInput = <HTMLInputElement>document.getElementById(id);
         colorInput.value = colorInput.value.toLowerCase();
-        if (!colorInput.value.match(/^#[0-9a-f]{6}$/i)) return;
+        if (!colorInput.value.match(/^#[0-9a-f]{6}$/i)) return null;
         if (G_settings.colorPalette.indexOf(colorInput.value) !== -1) {
             colorInput.value = "";
-            return;
+            return null;
         }
-        G_settings.colorPalette.push(colorInput.value);
-        if (!global) {
-            G_settings.rows[row].registers[register].color = colorInput.value;
-            document.getElementById(`OG_Register_${row}:${register}_colorList`).setAttribute("style", `background-color: ${colorInput.value}`);
+        let value = colorInput.value;
+        G_settings.colorPalette.push(value);
+        if (mode === 1) {
+            G_settings.rows[attr.row].registers[attr.register].color = value;
+            document.getElementById(`OG_Register_${attr.row}:${attr.register}_colorList`).setAttribute("style", `background-color: ${colorInput.value}`);
+        }
+        if (mode === 2) {
+            document.getElementById(`OG_Color_List_${attr.id}`).setAttribute("style", `background-color: ${colorInput.value}`);
         }
         colorInput.value = "";
         let form = "";
@@ -417,12 +438,22 @@ class FormGenerator {
                 form = "";
                 for (let k = 0; k < G_settings.colorPalette.length; k++) {
                     let color = G_settings.colorPalette[k];
-                    form += `<div class="w3-bar-item OG_color_element" onclick="OG_chooseColor(${i}, ${j}, '${color}')"
+                    form += `<div class="w3-bar-item OG_color_element" onclick="OG_chooseColor('', ${i}, ${j}, '${color}')"
                         style="background-color:${color};color:${OGG_getTextColor(color)}">${color}</div>`;
                 }
-                document.getElementById(`OG_Register_${row}:${register}_colorList`).innerHTML = form;
+                document.getElementById(`OG_Register_${attr.row}:${attr.register}_colorList`).innerHTML = form;
             }
         }
+        for (let id of this.colorPickerIds) {
+            form = "";
+            for (let i = 0; i < G_settings.colorPalette.length; i++) {
+                let color = G_settings.colorPalette[i];
+                form += `<div class="w3-bar-item OG_color_element" onclick="OG_chooseColor('${id}', 0, 0, '${color}')"
+                    style="background-color:${color};color:${OGG_getTextColor(color)}">${color}</div>`;
+            }
+            document.getElementById(id).innerHTML = form;
+        }
+        return value;
     }
 
     /**

@@ -76,8 +76,8 @@ function OG_move(type: "Row" | "Register", from: number, to: number, row: number
  * @param register id of the register
  * @param color html color string
  */
-function OG_chooseColor(row: number, register: number, color: string): void {
-    form.chooseColor(row, register, color);
+function OG_chooseColor(id: string, row: number, register: number, color: string): void {
+    form.chooseColor(id, row, register, color);
     new DiagramGenerator();
 }
 

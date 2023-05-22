@@ -27,10 +27,6 @@ class DiagramGenerator {
             "stroke-width": "2px",
             fill: "none",
         };
-        this.style.dot = {
-            fill: "red",
-            stroke: "none",
-        };
         this.style.noStroke = {
             stroke: "none",
         };
@@ -108,7 +104,9 @@ class DiagramGenerator {
         }
         for (let angle of playerAngles) {
             let position = this.findCoordinatesFromAngle(angle, row.radius);
-            this.svg.addCircle(position.x, position.y, G_settings.playerSize, this.style.dot);
+            let style = this.style.noStroke;
+            style.fill = G_settings.playerColor;
+            this.svg.addCircle(position.x, position.y, G_settings.playerSize, style);
         }
     }
 
@@ -116,7 +114,9 @@ class DiagramGenerator {
      * Draws the conductor dot in the center
      */
     private drawConductor(): void {
-        this.svg.addCircle(this.center.x, this.center.y - G_settings.conductorPos, G_settings.conductorSize, this.style.dot);
+        let style = this.style.noStroke;
+        style.fill = G_settings.conductorColor;
+        this.svg.addCircle(this.center.x, this.center.y - G_settings.conductorPos, G_settings.conductorSize, style);
     }
 
     /**
