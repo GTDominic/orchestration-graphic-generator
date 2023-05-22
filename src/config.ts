@@ -15,6 +15,5 @@ const config: I_Config = {
         registerPadding: 25,
         tableHeight: 50,
         drawCircles: false,
-        colors: ["#060010", "#2c1ce6", "#5d0f20", "#f3ddd6", "#adcdc7", "#12d1f5", "#ee1a87", "#dd450b", "#7546fa"],
     },
 };

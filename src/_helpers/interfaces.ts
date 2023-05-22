@@ -15,7 +15,6 @@ interface I_Config {
         registerPadding: number;
         tableHeight: number;
         drawCircles: boolean;
-        colors: Array<string>;
     };
 }
 
