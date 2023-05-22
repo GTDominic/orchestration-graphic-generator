@@ -3,6 +3,7 @@ let G_settings: I_Settings = {
     conductorPos: 0,
     conductorSize: 20,
     playerSize: 10,
+    display: "none",
 };
 
 interface I_Settings {
@@ -10,6 +11,7 @@ interface I_Settings {
     conductorPos: number;
     conductorSize: number;
     playerSize: number;
+    display: "none" | "table";
 }
 
 interface I_RowSettings {

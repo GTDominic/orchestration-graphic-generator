@@ -288,9 +288,15 @@ class FormGenerator {
      */
     private drawSettings(): string {
         let form = this.drawSettingsConductor();
-        form += `<p>Player size:
+        form += `<p>Player Size:
                 <input type="number" id="OG_Player_Size" class="w3-input"
                     name="Size Player" value="${G_settings.playerSize}" min="1" oninput="OG_update()">
+            </p>
+            <p>Register Name Display Type:
+                <select class="w3-select" id="OG_Display" name="Display Type" onchange="OG_update()">
+                    <option value="none"${G_settings.display === "none" ? " selected" : ""}>None</option>
+                    <option value="table"${G_settings.display === "table" ? " selected" : ""}>Table</option>
+                </select>
             </p>`;
         return form;
     }
@@ -301,7 +307,9 @@ class FormGenerator {
     private updateSettings(): void {
         this.updateSettingsConductor();
         let sizeElement = <HTMLInputElement>document.getElementById("OG_Player_Size");
+        let displayElement = <HTMLInputElement>document.getElementById("OG_Display");
         G_settings.playerSize = this.handleNumber(sizeElement);
+        G_settings.display = <"none" | "table">displayElement.value;
     }
 
     /**

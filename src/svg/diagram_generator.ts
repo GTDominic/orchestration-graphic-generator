@@ -3,6 +3,8 @@ class DiagramGenerator {
     private center: { x: number; y: number };
     private currentColor: number = 0;
     private style: { [index: string]: { [index: string]: string } } = {};
+    private xSize: number = 0;
+    private ySize: number = 0;
 
     /**
      * Draws a new Diagram
@@ -14,6 +16,7 @@ class DiagramGenerator {
         for (let r of G_settings.rows) this.drawRegisters(r);
         if (config.environment === "dev" && config.diagramSettings.drawCircles) this.drawCircles();
         this.drawConductor();
+        if (G_settings.display === "table") this.drawTable();
     }
 
     /**
@@ -29,8 +32,20 @@ class DiagramGenerator {
             fill: "red",
             stroke: "none",
         };
-        this.style.registerBack = {
+        this.style.noStroke = {
             stroke: "none",
+        };
+        this.style.textWhite = {
+            stroke: "none",
+            fill: "white",
+            "font-family": "Verdana",
+            "dominant-baseline": "middle",
+        };
+        this.style.textBlack = {
+            stroke: "none",
+            fill: "black",
+            "font-family": "Verdana",
+            "dominant-baseline": "middle",
         };
     }
 
@@ -39,13 +54,15 @@ class DiagramGenerator {
      */
     private calculateSize(): void {
         let biggestRadius = 0;
-        let xSize = 0;
-        let ySize = 0;
         for (let row of G_settings.rows) if (row.radius > biggestRadius) biggestRadius = row.radius;
-        this.center = { x: biggestRadius + config.diagramSettings.paddingSide, y: biggestRadius + config.diagramSettings.paddingTopBottom };
-        xSize = 2 * biggestRadius + 2 * config.diagramSettings.paddingSide;
-        ySize = this.findLowestPoint() + config.diagramSettings.paddingTopBottom;
-        this.svg.setSize(xSize, ySize);
+        this.center = {
+            x: biggestRadius + config.diagramSettings.paddingSide + config.diagramSettings.registerPadding,
+            y: biggestRadius + config.diagramSettings.paddingTopBottom,
+        };
+        this.xSize = 2 * biggestRadius + 2 * config.diagramSettings.paddingSide + 2 * config.diagramSettings.registerPadding;
+        this.ySize = this.findLowestPoint() + config.diagramSettings.paddingTopBottom;
+        if (G_settings.display === "table") this.ySize += 2 * config.diagramSettings.paddingTopBottom + this.countRegisters() * config.diagramSettings.tableHeight;
+        this.svg.setSize(this.xSize, this.ySize);
     }
 
     /**
@@ -96,7 +113,7 @@ class DiagramGenerator {
             let color = config.diagramSettings.colors[this.currentColor];
             this.currentColor++;
             if (this.currentColor === config.diagramSettings.colors.length) this.currentColor = 0;
-            let style = this.style.registerBack;
+            let style = this.style.noStroke;
             style.fill = color;
             this.svg.addPath(d, style);
         }
@@ -111,6 +128,31 @@ class DiagramGenerator {
      */
     private drawConductor(): void {
         this.svg.addCircle(this.center.x, this.center.y - G_settings.conductorPos, G_settings.conductorSize, this.style.dot);
+    }
+
+    /**
+     * Draws a display table
+     */
+    private drawTable(): void {
+        if (this.countRegisters() === 0) return;
+        let y = this.findLowestPoint() + 2 * config.diagramSettings.paddingTopBottom;
+        let x = config.diagramSettings.paddingSide;
+        const width = this.xSize / 2 - config.diagramSettings.paddingSide;
+        const height = config.diagramSettings.tableHeight;
+        this.currentColor = 0;
+        for (let row of G_settings.rows) {
+            for (let reg of row.registers) {
+                let color = config.diagramSettings.colors[this.currentColor];
+                this.currentColor++;
+                if (this.currentColor === config.diagramSettings.colors.length) this.currentColor = 0;
+                let style = this.style.noStroke;
+                style.fill = color;
+                this.svg.addRectangle(x, y, width, height, style);
+                this.svg.addText(x + 5, y + height / 2, `${reg.count}x ${reg.name}`, this.style.textWhite);
+                y = x === config.diagramSettings.paddingSide ? y : y + height;
+                x = x === config.diagramSettings.paddingSide ? config.diagramSettings.paddingSide + width : config.diagramSettings.paddingSide;
+            }
+        }
     }
 
     /**
@@ -171,5 +213,15 @@ class DiagramGenerator {
         let players = 0;
         for (let reg of row.registers) players += reg.count;
         return players;
+    }
+
+    /**
+     * Counts all registers
+     * @returns count
+     */
+    private countRegisters(): number {
+        let count = 0;
+        for (let row of G_settings.rows) for (let reg of row.registers) count++;
+        return count;
     }
 }
