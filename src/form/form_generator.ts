@@ -50,8 +50,10 @@ class FormGenerator {
             let rightAngleBorder = G_settings.rows.length === 0 ? false : G_settings.rows[G_settings.rows.length - 1].rightAngleBorder;
             G_settings.rows.push({ radius, linked, leftAngle, leftAngleBorder, rightAngle, rightAngleBorder, sync: true, show: true, registers: [] });
             G_settings.rows[G_settings.rows.length - 1].registers.push({ name: "", count: 1, show: true, color: "#000000" });
+            this.assignDefaultColor(G_settings.rows.length - 1, 0);
         } else {
             G_settings.rows[row].registers.push({ name: "", count: 1, show: true, color: "#000000" });
+            this.assignDefaultColor(row, G_settings.rows[row].registers.length - 1);
         }
         this.draw();
     }
@@ -388,7 +390,12 @@ class FormGenerator {
      */
     private updateColorPicker(global: boolean, row: number = 0, register: number = 0): void {
         let colorInput = <HTMLInputElement>document.getElementById(global ? "OG_Color" : `OG_Register_${row}:${register}_color`);
+        colorInput.value = colorInput.value.toLowerCase();
         if (!colorInput.value.match(/^#[0-9a-f]{6}$/i)) return;
+        if (G_settings.colorPalette.indexOf(colorInput.value) !== -1) {
+            colorInput.value = "";
+            return;
+        }
         G_settings.colorPalette.push(colorInput.value);
         if (!global) {
             G_settings.rows[row].registers[register].color = colorInput.value;
@@ -415,6 +422,24 @@ class FormGenerator {
                 document.getElementById(`OG_Register_${row}:${register}_colorList`).innerHTML = form;
             }
         }
+    }
+
+    /**
+     * Assigns a default background color
+     * @param row rowId
+     * @param register registerId
+     */
+    private assignDefaultColor(row: number, register: number): void {
+        let freeColors = [...G_settings.colorPalette];
+        for(let row of G_settings.rows) {
+            for (let reg of row.registers) {
+                let i = freeColors.indexOf(reg.color);
+                if(i !== -1) freeColors.splice(i, 1);
+            }
+        }
+        if(freeColors.length >= 1) G_settings.rows[row].registers[register].color = freeColors[0];
+        else if(G_settings.colorPalette.length >= 1) G_settings.rows[row].registers[register].color = G_settings.colorPalette[0];
+        else G_settings.rows[row].registers[register].color = "#000000";
     }
 
     /**
