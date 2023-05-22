@@ -71,6 +71,17 @@ function OG_move(type: "Row" | "Register", from: number, to: number, row: number
 }
 
 /**
+ * Chooses the color for a specified register
+ * @param row id of the row the register is in
+ * @param register id of the register
+ * @param color html color string
+ */
+function OG_chooseColor(row: number, register: number, color: string): void {
+    form.chooseColor(row, register, color);
+    new DiagramGenerator();
+}
+
+/**
  * Downloads the graphic/settings as svg or json
  * @param type "json" | "svg"
  */

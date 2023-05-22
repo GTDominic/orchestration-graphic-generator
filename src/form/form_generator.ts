@@ -49,9 +49,9 @@ class FormGenerator {
             let leftAngleBorder = G_settings.rows.length === 0 ? false : G_settings.rows[G_settings.rows.length - 1].leftAngleBorder;
             let rightAngleBorder = G_settings.rows.length === 0 ? false : G_settings.rows[G_settings.rows.length - 1].rightAngleBorder;
             G_settings.rows.push({ radius, linked, leftAngle, leftAngleBorder, rightAngle, rightAngleBorder, sync: true, show: true, registers: [] });
-            G_settings.rows[G_settings.rows.length - 1].registers.push({ name: "", count: 1, show: true });
+            G_settings.rows[G_settings.rows.length - 1].registers.push({ name: "", count: 1, show: true, color: "#000000" });
         } else {
-            G_settings.rows[row].registers.push({ name: "", count: 1, show: true });
+            G_settings.rows[row].registers.push({ name: "", count: 1, show: true, color: "#000000" });
         }
         this.draw();
     }
@@ -125,6 +125,17 @@ class FormGenerator {
             (<I_RowSettings>r[from]).linked = l1;
             (<I_RowSettings>r[to]).linked = l2;
         }
+        this.draw();
+    }
+
+    /**
+     * Chooses the color for a specified register
+     * @param row id of the row the register is in
+     * @param register id of the register
+     * @param color html color string
+     */
+    public chooseColor(row: number, register: number, color: string): void {
+        G_settings.rows[row].registers[register].color = color;
         this.draw();
     }
 
@@ -263,9 +274,9 @@ class FormGenerator {
             <p>Count:
                 <input type="number" id="OG_Register_${row}:${id}_count" class="w3-input"
                     name="Count Register" value="${r.count}" min="1" oninput="OG_update()">
-            </p>
-            </div>
-        `;
+            </p>`;
+        form += this.drawColorPicker(false, row, id);
+        form += `</div>`;
         return form;
     }
 
@@ -275,6 +286,7 @@ class FormGenerator {
      * @param row Row that the register is in
      */
     private updateRegister(id: number, row: number): void {
+        this.updateColorPicker(false, row, id);
         let r = G_settings.rows[row].registers[id];
         if (!r.show) return;
         let nameElement = <HTMLInputElement>document.getElementById(`OG_Register_${row}:${id}_name`);
@@ -299,18 +311,8 @@ class FormGenerator {
                     <option value="none"${G_settings.display === "none" ? " selected" : ""}>None</option>
                     <option value="table"${G_settings.display === "table" ? " selected" : ""}>Table</option>
                 </select>
-            </p>
-            <p>Colors (click color to remove from list):
-            <div class="w3-bar w3-white" id="OG_Color_List">`;
-        for (let i = 0; i < G_settings.colorPalette.length; i++) {
-            let color = G_settings.colorPalette[i];
-            form += `<div class="w3-bar-item OG_color_element" onclick="OG_remove('Color', ${i})"
-                style="background-color:${color};color:${OGG_getTextColor(color)}">${color}</div>`;
-        }
-        form += `</div><input type="text" id="OG_Color" class="w3-input w3-margin-top"
-                    name="Input Color" oninput="OG_update()">
-                Enter Colors as HTML Color Code (e.g. "#ffffff") in the format "#rrggbb".
             </p>`;
+        form += this.drawColorPicker(true);
         return form;
     }
 
@@ -319,22 +321,11 @@ class FormGenerator {
      */
     private updateSettings(): void {
         this.updateSettingsConductor();
+        this.updateColorPicker(true);
         let sizeElement = <HTMLInputElement>document.getElementById("OG_Player_Size");
         let displayElement = <HTMLInputElement>document.getElementById("OG_Display");
-        let colorInput = <HTMLInputElement>document.getElementById("OG_Color");
         G_settings.playerSize = this.handleNumber(sizeElement);
         G_settings.display = <"none" | "table">displayElement.value;
-        if (colorInput.value.match(/^#[0-9a-f]{6}$/i)) {
-            G_settings.colorPalette.push(colorInput.value);
-            colorInput.value = "";
-            let form = "";
-            for (let i = 0; i < G_settings.colorPalette.length; i++) {
-                let color = G_settings.colorPalette[i];
-                form += `<div class="w3-bar-item OG_color_element" onclick="OG_remove('Color', ${i})"
-                    style="background-color:${color};color:${OGG_getTextColor(color)}">${color}</div>`;
-            }
-            document.getElementById("OG_Color_List").innerHTML = form;
-        }
     }
 
     /**
@@ -364,6 +355,66 @@ class FormGenerator {
         let sizeElement = <HTMLInputElement>document.getElementById("OG_Conductor_Size");
         G_settings.conductorPos = Number(posElement.value);
         G_settings.conductorSize = this.handleNumber(sizeElement);
+    }
+
+    /**
+     * Draws a color picker
+     * @param global Defines wether it is the global or a register specific color picker
+     * @param row In Register Mode defines row id
+     * @param register In Register Mode defines register id
+     * @returns html form string
+     */
+    private drawColorPicker(global: boolean, row: number = 0, register: number = 0): string {
+        let form = `<p>Colors (click color to ${global ? "remove from list" : "choose"}):
+            <div class="w3-bar" id="${global ? "OG_Color_List" : `OG_Register_${row}:${register}_colorList`}"
+                style="background-color: ${global ? "white" : G_settings.rows[row].registers[register].color}">`;
+        for (let i = 0; i < G_settings.colorPalette.length; i++) {
+            let color = G_settings.colorPalette[i];
+            form += `<div class="w3-bar-item OG_color_element" onclick="${global ? `OG_remove('Color', ${i})` : `OG_chooseColor(${row}, ${register}, '${color}')`}"
+                    style="background-color:${color};color:${OGG_getTextColor(color)}">${color}</div>`;
+        }
+        form += `</div><input type="text" id="${global ? "OG_Color" : `OG_Register_${row}:${register}_color`}" class="w3-input w3-margin-top"
+                name="Input Color" oninput="OG_update()">
+            Enter Colors as HTML Color Code (e.g. "#ffffff") in the format "#rrggbb".
+        </p>`;
+        return form;
+    }
+
+    /**
+     * Updates the color pickers
+     * @param global Defines wether it is the global or a register specific color picker
+     * @param row In Register Mode defines row id
+     * @param register In Register Mode defines register id
+     */
+    private updateColorPicker(global: boolean, row: number = 0, register: number = 0): void {
+        let colorInput = <HTMLInputElement>document.getElementById(global ? "OG_Color" : `OG_Register_${row}:${register}_color`);
+        if (!colorInput.value.match(/^#[0-9a-f]{6}$/i)) return;
+        G_settings.colorPalette.push(colorInput.value);
+        if (!global) {
+            G_settings.rows[row].registers[register].color = colorInput.value;
+            document.getElementById(`OG_Register_${row}:${register}_colorList`).setAttribute("style", `background-color: ${colorInput.value}`);
+        }
+        colorInput.value = "";
+        let form = "";
+        for (let i = 0; i < G_settings.colorPalette.length; i++) {
+            let color = G_settings.colorPalette[i];
+            form += `<div class="w3-bar-item OG_color_element" onclick="OG_remove('Color', ${i})"
+                style="background-color:${color};color:${OGG_getTextColor(color)}">${color}</div>`;
+        }
+        document.getElementById("OG_Color_List").innerHTML = form;
+        for (let i = 0; i < G_settings.rows.length; i++) {
+            for (let j = 0; j < G_settings.rows[i].registers.length; j++) {
+                let reg = G_settings.rows[i].registers[j];
+                if (!reg.show) continue;
+                form = "";
+                for (let k = 0; k < G_settings.colorPalette.length; k++) {
+                    let color = G_settings.colorPalette[k];
+                    form += `<div class="w3-bar-item OG_color_element" onclick="OG_chooseColor(${i}, ${j}, '${color}')"
+                        style="background-color:${color};color:${OGG_getTextColor(color)}">${color}</div>`;
+                }
+                document.getElementById(`OG_Register_${row}:${register}_colorList`).innerHTML = form;
+            }
+        }
     }
 
     /**

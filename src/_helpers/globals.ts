@@ -31,5 +31,6 @@ interface I_RowSettings {
 interface I_RegisterSettings {
     name: string;
     count: number;
+    color: string;
     show: boolean;
 }
