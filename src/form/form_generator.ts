@@ -381,7 +381,7 @@ class FormGenerator {
     private drawColorPicker(mode: 0 | 1 | 2, attr: { row?: number; register?: number; id?: string; bkgColor?: string }): string {
         let listId = mode === 0 ? "OG_Color_List" : mode === 1 ? `OG_Register_${attr.row}:${attr.register}_colorList` : `OG_Color_List_${attr.id}`;
         if (mode === 2) this.colorPickerIds.push(listId);
-        let form = `<p>Colors (click color to ${mode === 0 ? "remove from list" : "choose"}):
+        let form = `<p>Color${mode === 0 ? "s" : ""} (click color to ${mode === 0 ? "remove from list" : "choose"}):
             <div class="w3-bar" id="${listId}"
                 style="background-color: ${mode === 0 ? "white" : mode === 1 ? G_settings.rows[attr.row].registers[attr.register].color : attr.bkgColor}">`;
         for (let i = 0; i < G_settings.colorPalette.length; i++) {
