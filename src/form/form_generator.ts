@@ -49,6 +49,7 @@ class FormGenerator {
             let leftAngleBorder = G_settings.rows.length === 0 ? false : G_settings.rows[G_settings.rows.length - 1].leftAngleBorder;
             let rightAngleBorder = G_settings.rows.length === 0 ? false : G_settings.rows[G_settings.rows.length - 1].rightAngleBorder;
             G_settings.rows.push({ radius, linked, leftAngle, leftAngleBorder, rightAngle, rightAngleBorder, sync: true, show: true, registers: [] });
+            G_settings.rows[G_settings.rows.length - 1].registers.push({ name: "", count: 1, show: true });
         } else {
             G_settings.rows[row].registers.push({ name: "", count: 1, show: true });
         }
@@ -352,8 +353,8 @@ class FormGenerator {
      * @returns value if higher than minimum / minimum if lower
      */
     private handleNumber(element: HTMLInputElement, min: number = 1): number {
-        if(element.value === "") return min;
-        if(Number(element.value) >= min) return Number(element.value);
+        if (element.value === "") return min;
+        if (Number(element.value) >= min) return Number(element.value);
         element.value = String(min);
         return 1;
     }
