@@ -4,6 +4,7 @@ let G_settings: I_Settings = {
     conductorSize: 20,
     playerSize: 10,
     display: "none",
+    colorPalette: ["#aa00dd", "#44bb55"],
 };
 
 interface I_Settings {
@@ -12,6 +13,7 @@ interface I_Settings {
     conductorSize: number;
     playerSize: number;
     display: "none" | "table";
+    colorPalette: Array<string>;
 }
 
 interface I_RowSettings {

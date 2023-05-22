@@ -59,23 +59,25 @@ class FormGenerator {
     /**
      * Removes a row or register
      * @param type "Row" | "Register"
-     * @param row Defines the row that is removed or where the register is removed from
+     * @param i Defines the row that is removed or where the register is removed from | Defines the color position
      * @param register If "Register" defines the register to be removed
      */
-    public remove(type: "Row" | "Register", row: number, register: number): void {
+    public remove(type: "Row" | "Register" | "Color", i: number, register: number): void {
         if (type === "Row") {
-            let r = G_settings.rows[row].radius;
-            let l = G_settings.rows[row].linked;
-            G_settings.rows.splice(row, 1);
-            if (row < G_settings.rows.length) {
-                let e = G_settings.rows[row];
+            let r = G_settings.rows[i].radius;
+            let l = G_settings.rows[i].linked;
+            G_settings.rows.splice(i, 1);
+            if (i < G_settings.rows.length) {
+                let e = G_settings.rows[i];
                 if (e.linked === true) {
                     e.radius = r;
                     e.linked = l;
                 }
             }
+        } else if (type === "Register") {
+            G_settings.rows[i].registers.splice(register, 1);
         } else {
-            G_settings.rows[row].registers.splice(register, 1);
+            G_settings.colorPalette.splice(i, 1);
         }
         this.draw();
     }
@@ -297,6 +299,17 @@ class FormGenerator {
                     <option value="none"${G_settings.display === "none" ? " selected" : ""}>None</option>
                     <option value="table"${G_settings.display === "table" ? " selected" : ""}>Table</option>
                 </select>
+            </p>
+            <p>Colors (click color to remove from list):
+            <div class="w3-bar w3-white" id="OG_Color_List">`;
+        for (let i = 0; i < G_settings.colorPalette.length; i++) {
+            let color = G_settings.colorPalette[i];
+            form += `<div class="w3-bar-item OG_color_element" onclick="OG_remove('Color', ${i})"
+                style="background-color:${color};color:${OGG_getTextColor(color)}">${color}</div>`;
+        }
+        form += `</div><input type="text" id="OG_Color" class="w3-input w3-margin-top"
+                    name="Input Color" oninput="OG_update()">
+                Enter Colors as HTML Color Code (e.g. "#ffffff") in the format "#rrggbb".
             </p>`;
         return form;
     }
@@ -308,8 +321,20 @@ class FormGenerator {
         this.updateSettingsConductor();
         let sizeElement = <HTMLInputElement>document.getElementById("OG_Player_Size");
         let displayElement = <HTMLInputElement>document.getElementById("OG_Display");
+        let colorInput = <HTMLInputElement>document.getElementById("OG_Color");
         G_settings.playerSize = this.handleNumber(sizeElement);
         G_settings.display = <"none" | "table">displayElement.value;
+        if (colorInput.value.match(/^#[0-9a-f]{6}$/i)) {
+            G_settings.colorPalette.push(colorInput.value);
+            colorInput.value = "";
+            let form = "";
+            for (let i = 0; i < G_settings.colorPalette.length; i++) {
+                let color = G_settings.colorPalette[i];
+                form += `<div class="w3-bar-item OG_color_element" onclick="OG_remove('Color', ${i})"
+                    style="background-color:${color};color:${OGG_getTextColor(color)}">${color}</div>`;
+            }
+            document.getElementById("OG_Color_List").innerHTML = form;
+        }
     }
 
     /**

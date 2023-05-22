@@ -19,4 +19,4 @@ interface I_Config {
     };
 }
 
-type T_VersionNumber = `${number}.${number}.${number}`;
+type T_VersionNumber = `${number}.${number}.${number}${"" | `-${"dev" | "beta"}`}`;

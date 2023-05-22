@@ -40,11 +40,11 @@ function OG_add(type: "Row" | "Register", row: number = 0): void {
 /**
  * Removes a row or register
  * @param type "Row" | "Register"
- * @param row Defines the row that is removed or where the register is removed from
+ * @param i Defines the row that is removed or where the register is removed from | Defines the color position
  * @param register If "Register" defines the register to be removed (not needed for "Row")
  */
-function OG_remove(type: "Row" | "Register", row: number, register: number = 0): void {
-    form.remove(type, row, register);
+function OG_remove(type: "Row" | "Register" | "Color", i: number, register: number = 0): void {
+    form.remove(type, i, register);
     new DiagramGenerator();
 }
 

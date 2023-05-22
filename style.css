@@ -23,3 +23,12 @@
 .navbar {
     z-index: 99;
 }
+
+.OG_color_element {
+    margin: 5px;
+    padding: 5px !important;
+}
+
+.OG_color_element:hover {
+    cursor: pointer;
+}
