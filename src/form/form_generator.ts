@@ -142,9 +142,9 @@ class FormGenerator {
      * @param color html color string
      */
     public chooseColor(id: string, row: number, register: number, color: string): void {
-        if (!id) G_settings.rows[row].registers[register].color = color;
-        if (id === "conductor") G_settings.conductorColor = color;
-        if (id === "player") G_settings.playerColor = color;
+        if (!id || id === "undefined") G_settings.rows[row].registers[register].color = color;
+        else if (id === "conductor") G_settings.conductorColor = color;
+        else if (id === "player") G_settings.playerColor = color;
         if (config.environment === "dev" && config.debug) console.log(G_settings);
         this.draw();
     }
