@@ -123,13 +123,16 @@ class FormGenerator {
         );
 
         let leftAngleBorder = this.html.addP(wrapper);
+        let players = 0;
+        for(let reg of G_settings.rows[i].registers) players += reg.count;
         this.html.addCheckbox(
             leftAngleBorder,
             checkCss,
             `OG_Row_${i}_LeftAngleBorder`,
             "Left Angle by Border",
             "OG_update()",
-            r.leftAngleBorder
+            r.leftAngleBorder,
+            players <= 1
         );
         let leftAngleBorderLabel = this.html.addLabel(
             leftAngleBorder,
@@ -161,7 +164,7 @@ class FormGenerator {
             "Right Angle by Border",
             "OG_update()",
             r.rightAngleBorder,
-            r.sync
+            r.sync || players <= 1
         );
         let rightAngleBorderLabel = this.html.addLabel(
             rightAngleBorder,
@@ -504,22 +507,15 @@ class FormGenerator {
                 G_settings.rows.length === 0
                     ? 90
                     : G_settings.rows[G_settings.rows.length - 1].rightAngle;
-            let leftAngleBorder =
-                G_settings.rows.length === 0
-                    ? false
-                    : G_settings.rows[G_settings.rows.length - 1].leftAngleBorder;
-            let rightAngleBorder =
-                G_settings.rows.length === 0
-                    ? false
-                    : G_settings.rows[G_settings.rows.length - 1].rightAngleBorder;
+            let sync = G_settings.rows.length === 0 ? true : G_settings.rows[G_settings.rows.length - 1].sync;
             G_settings.rows.push({
                 radius,
                 linked,
                 leftAngle,
-                leftAngleBorder,
+                leftAngleBorder: false,
                 rightAngle,
-                rightAngleBorder,
-                sync: true,
+                rightAngleBorder: false,
+                sync,
                 show: true,
                 registers: [],
             });
@@ -545,25 +541,26 @@ class FormGenerator {
     /**
      * Removes a row or register
      * @param type "Row" | "Register"
-     * @param i Defines the row that is removed or where the register is removed from | Defines the color position
+     * @param row Defines the row that is removed or where the register is removed from | Defines the color position
      * @param register If "Register" defines the register to be removed
      */
-    public remove(type: "Row" | "Register" | "Color", i: number, register: number): void {
+    public remove(type: "Row" | "Register" | "Color", row: number, register: number): void {
         if (type === "Row") {
-            let r = G_settings.rows[i].radius;
-            let l = G_settings.rows[i].linked;
-            G_settings.rows.splice(i, 1);
-            if (i < G_settings.rows.length) {
-                let e = G_settings.rows[i];
+            let r = G_settings.rows[row].radius;
+            let l = G_settings.rows[row].linked;
+            G_settings.rows.splice(row, 1);
+            if (row < G_settings.rows.length) {
+                let e = G_settings.rows[row];
                 if (e.linked === true) {
                     e.radius = r;
                     e.linked = l;
                 }
             }
         } else if (type === "Register") {
-            G_settings.rows[i].registers.splice(register, 1);
+            G_settings.rows[row].registers.splice(register, 1);
+            this.updateRow(row);
         } else {
-            G_settings.customColors.splice(i, 1);
+            G_settings.customColors.splice(row, 1);
         }
         this.draw();
     }
@@ -701,6 +698,16 @@ class FormGenerator {
             })`;
         }
         for (let i = 0; i < r.registers.length; i++) this.updateRegister(i, id);
+        let players = 0;
+        for(let reg of G_settings.rows[id].registers) players += reg.count;
+        if(players <= 1) {
+            r.leftAngleBorder = false;
+            leftTypeElement.checked = false;
+            r.rightAngleBorder = false;
+            rightTypeElement.checked = false;
+        }
+        leftTypeElement.disabled = players <= 1;
+        rightTypeElement.disabled = r.sync || players <= 1;
     }
 
     /**
