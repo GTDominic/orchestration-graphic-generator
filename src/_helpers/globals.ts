@@ -1,5 +1,15 @@
 let G_settings: I_Settings = {
-    rows: [],
+    rows: [{
+        radius: 200,
+        linked: false,
+        leftAngle: 90,
+        leftAngleBorder: false,
+        rightAngle: 90,
+        rightAngleBorder: false,
+        show: true,
+        sync: true,
+        registers: []
+    }],
     conductorPos: 0,
     conductorSize: 20,
     conductorColor: "#aaaaaa",

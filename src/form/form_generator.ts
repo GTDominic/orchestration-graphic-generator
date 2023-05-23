@@ -40,12 +40,12 @@ class FormGeneratorNew {
      */
     public drawRow(context: I_HTML_tree, i: number): void {
         let r = G_settings.rows[i];
-        let wrapperClass = `w3-panel ${i % 2 === 0 ? "w3-lightblue" : "w3-cyan"}`;
+        let wrapperClass = `w3-panel ${i % 2 === 0 ? "w3-light-blue" : "w3-cyan"} w3-card-4`;
         let wrapper = this.html.addDiv(context, wrapperClass);
 
         let heading = this.html.addHeader(3, wrapper);
 
-        let buttonHeaderCss = "w3-button 23-blue-grey w3-medium";
+        let buttonHeaderCss = "w3-button w3-blue-grey w3-medium";
         let buttonUp = this.html.addButton(
             heading,
             buttonHeaderCss,
@@ -74,5 +74,6 @@ class FormGeneratorNew {
             `OG_remove('Row',${i})`
         );
         this.html.addText(buttonX, "X");
+        if(!r.show) return;
     }
 }
