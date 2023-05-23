@@ -60,7 +60,22 @@ class JSONHandler {
      * @returns true if mismatched could be handled / false otherwise
      */
     private handleVersionMismatch(importedObj: Object): boolean {
-        // After version 1.0.0 Mismatched versions will be handled here
+        let iv = (<{ name: string; version: string; content: I_Settings }>(
+            importedObj
+        )).version.split(".");
+        let ev = config.version.split(".");
+        let ivx = iv[0];
+        let ivy = iv[1];
+        let ivz = iv[2];
+        let evx = ev[0];
+        let evy = ev[1];
+        let evz = ev[2];
+        // Never allow different Mayor versions X.y.z
+        if(ivx !== evx) return false;
+        // Always allow different Patch version x.y.Z
+        if(ivy === evy) return true;
+        // Allow Version 1.0.z on 1.1.z
+        if(ivy === "0") return true;
         return false;
     }
 }
