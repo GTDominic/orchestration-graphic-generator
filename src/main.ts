@@ -12,10 +12,11 @@ let svgExport: SVGExport;
  */
 function OG_main(): void {
     loadPage();
-    form = new FormGenerator();
+    // form = new FormGenerator();
     jsonHandler = new JSONHandler();
     svgExport = new SVGExport();
     new DiagramGenerator();
+    new FormGeneratorNew();
 }
 
 /**
