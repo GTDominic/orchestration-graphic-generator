@@ -99,6 +99,87 @@ class HTMLHandler {
     }
 
     /**
+     * Adds an input to an HTML Element (not to use for checkboxes)
+     * @param context HTML Context to put the text in (null if no context)
+     * @param type type of input
+     * @param cssClass css Class
+     * @param id css Id
+     * @param name name attribute
+     * @param value value of the input
+     * @param oninput function executed oninput
+     * @param disabled true if disabled
+     * @param min minimum value
+     * @param attr attribute object
+     * @returns created element
+     */
+    public addInput(
+        context: I_HTML_tree, 
+        type: string, 
+        cssClass: string, 
+        id: string, 
+        name: string, 
+        value: string, 
+        oninput: string, 
+        disabled: boolean = false, 
+        min?: number,
+        attr: I_HTML_attr = {}
+    ): I_HTML_tree {
+        attr.type = type;
+        attr.class = cssClass;
+        attr.id = id;
+        attr.name = name;
+        attr.value = value;
+        attr.oninput = oninput;
+        if(min) attr.min = String(min);
+        let element: I_HTML_tree = {
+            type: "input",
+            disabled,
+            attr,
+            children: [],
+        }
+        if(context !== null) context.children.push(element);
+        return element;
+    }
+
+    /**
+     * Adds a checkbox to an HTML Element
+     * @param context HTML Context to put the text in (null if no context)
+     * @param cssClass css Class
+     * @param id css Id
+     * @param name name attribute
+     * @param onchange function executed onchange
+     * @param checked true if checked
+     * @param disabled true if disabled
+     * @param attr attribute object
+     * @returns Created element
+     */
+    public addCheckbox(
+        context: I_HTML_tree, 
+        cssClass: string, 
+        id: string, 
+        name: string, 
+        onchange: string, 
+        checked: boolean,
+        disabled: boolean = false, 
+        attr: I_HTML_attr = {}
+    ): I_HTML_tree {
+        attr.type = "checkbox";
+        attr.class = cssClass;
+        attr.id = id;
+        attr.name = name;
+        attr.onchange = onchange;
+        let element: I_HTML_tree = {
+            type: "input",
+            disabled,
+            checked,
+            attr,
+            children: [],
+        }
+        if(context !== null) context.children.push(element);
+        return element;
+    }
+
+    /**
      * Draws a element of the tree and his children
      * @param e Tree Element
      * @returns form string

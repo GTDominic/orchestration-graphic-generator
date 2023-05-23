@@ -60,20 +60,30 @@ class FormGeneratorNew {
             i === G_settings.rows.length - 1
         );
         this.html.addText(buttonDown, "&darr;");
-        let buttonShow = this.html.addButton(
-            heading,
-            buttonHeaderCss,
-            `OG_showHide('Row',${i})`
-        );
+        let buttonShow = this.html.addButton(heading, buttonHeaderCss, `OG_showHide('Row',${i})`);
         this.html.addText(buttonShow, r.show ? "Hide &and;" : "Show &or;");
-        this.html.addText(heading, `Row ${i + 1}`);
+        this.html.addText(heading, ` Row ${i + 1}`);
         buttonHeaderCss += " w3-right";
-        let buttonX = this.html.addButton(
-            heading,
-            buttonHeaderCss,
-            `OG_remove('Row',${i})`
-        );
+        let buttonX = this.html.addButton(heading, buttonHeaderCss, `OG_remove('Row',${i})`);
         this.html.addText(buttonX, "X");
-        if(!r.show) return;
+        if (!r.show) return;
+
+        let inputCss = "w3-input";
+        let checkCss = "w3-ckeck";
+
+        let radiusP = this.html.addP(wrapper);
+        let radiusId = `OG_Row_${i}_Radius`;
+        this.html.addText(radiusP, "Radius (in px):");
+        this.html.addInput(
+            radiusP,
+            "number",
+            inputCss,
+            radiusId,
+            "Radius Row",
+            String(r.radius),
+            "OG_update()",
+            r.linked,
+            1
+        );
     }
 }

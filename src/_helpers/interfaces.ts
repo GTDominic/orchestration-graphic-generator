@@ -35,6 +35,7 @@ interface I_HTML_attr {
     type?: string;
     name?: string;
     value?: string;
+    min?: string;
     onclick?: string;
     onchange?: string;
     oninput?: string;
