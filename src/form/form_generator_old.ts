@@ -1,4 +1,4 @@
-class FormGenerator {
+class FormGeneratorOld {
     private colorPickerIds: Array<string>;
     private palletesActive: boolean = false;
     private activePalette: number = null;

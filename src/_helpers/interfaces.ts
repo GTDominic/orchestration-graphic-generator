@@ -39,6 +39,7 @@ interface I_HTML_attr {
     onclick?: string;
     onchange?: string;
     oninput?: string;
+    style?: string;
 }
 
 type T_VersionNumber = `${number}.${number}.${number}${"" | `-${"dev" | "beta"}`}`;

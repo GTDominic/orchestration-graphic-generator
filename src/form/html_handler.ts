@@ -6,10 +6,10 @@ class HTMLHandler {
      */
     public draw(tree: Array<I_HTML_tree>, anchorId: string): void {
         let form = "";
-        for(let element of tree) form += this.drawElement(element);
+        for (let element of tree) form += this.drawElement(element);
         document.getElementById(anchorId).innerHTML = form;
     }
-    
+
     /**
      * Adds text to an HTML Element
      * @param context HTML Context to put the text in
@@ -19,7 +19,7 @@ class HTMLHandler {
         let element: I_HTML_tree = {
             type: "text",
             content,
-        }
+        };
         context.children.push(element);
     }
 
@@ -31,15 +31,20 @@ class HTMLHandler {
      * @param attr attribute object
      * @returns Created element
      */
-    public addDiv(context: I_HTML_tree, cssClass: string, id: string = "", attr: I_HTML_attr = {}): I_HTML_tree {
+    public addDiv(
+        context: I_HTML_tree,
+        cssClass: string,
+        id: string = "",
+        attr: I_HTML_attr = {}
+    ): I_HTML_tree {
         attr.class = cssClass;
-        if(id) attr.id = id;
+        if (id) attr.id = id;
         let element: I_HTML_tree = {
             type: "div",
             attr,
             children: [],
-        }
-        if(context !== null) context.children.push(element);
+        };
+        if (context !== null) context.children.push(element);
         return element;
     }
 
@@ -55,8 +60,8 @@ class HTMLHandler {
             type: `h${type}`,
             attr,
             children: [],
-        }
-        if(context !== null) context.children.push(element);
+        };
+        if (context !== null) context.children.push(element);
         return element;
     }
 
@@ -71,8 +76,26 @@ class HTMLHandler {
             type: "p",
             attr,
             children: [],
-        }
-        if(context !== null) context.children.push(element);
+        };
+        if (context !== null) context.children.push(element);
+        return element;
+    }
+
+    /**
+     * Adds a label element to an HTML Element
+     * @param context HTML Context to put the text in (null if no context)
+     * @param id css id
+     * @param attr attribute object
+     * @returns Created element
+     */
+    public addLabel(context: I_HTML_tree, id: string = "", attr: I_HTML_attr = {}): I_HTML_tree {
+        if (id) attr.id = id;
+        let element: I_HTML_tree = {
+            type: "label",
+            attr,
+            children: [],
+        };
+        if (context !== null) context.children.push(element);
         return element;
     }
 
@@ -85,7 +108,13 @@ class HTMLHandler {
      * @param attr attribute object
      * @returns Created element
      */
-    public addButton(context: I_HTML_tree, cssClass: string, onclick: string, disabled: boolean = false, attr: I_HTML_attr = {}): I_HTML_tree {
+    public addButton(
+        context: I_HTML_tree,
+        cssClass: string,
+        onclick: string,
+        disabled: boolean = false,
+        attr: I_HTML_attr = {}
+    ): I_HTML_tree {
         attr.class = cssClass;
         attr.onclick = onclick;
         let element: I_HTML_tree = {
@@ -93,8 +122,8 @@ class HTMLHandler {
             disabled,
             attr,
             children: [],
-        }
-        if(context !== null) context.children.push(element);
+        };
+        if (context !== null) context.children.push(element);
         return element;
     }
 
@@ -113,14 +142,14 @@ class HTMLHandler {
      * @returns created element
      */
     public addInput(
-        context: I_HTML_tree, 
-        type: string, 
-        cssClass: string, 
-        id: string, 
-        name: string, 
-        value: string, 
-        oninput: string, 
-        disabled: boolean = false, 
+        context: I_HTML_tree,
+        type: string,
+        cssClass: string,
+        id: string,
+        name: string,
+        value: string,
+        oninput: string,
+        disabled: boolean = false,
         min?: number,
         attr: I_HTML_attr = {}
     ): I_HTML_tree {
@@ -130,14 +159,14 @@ class HTMLHandler {
         attr.name = name;
         attr.value = value;
         attr.oninput = oninput;
-        if(min) attr.min = String(min);
+        if (min) attr.min = String(min);
         let element: I_HTML_tree = {
             type: "input",
             disabled,
             attr,
             children: [],
-        }
-        if(context !== null) context.children.push(element);
+        };
+        if (context !== null) context.children.push(element);
         return element;
     }
 
@@ -154,13 +183,13 @@ class HTMLHandler {
      * @returns Created element
      */
     public addCheckbox(
-        context: I_HTML_tree, 
-        cssClass: string, 
-        id: string, 
-        name: string, 
-        onchange: string, 
+        context: I_HTML_tree,
+        cssClass: string,
+        id: string,
+        name: string,
+        onchange: string,
         checked: boolean,
-        disabled: boolean = false, 
+        disabled: boolean = false,
         attr: I_HTML_attr = {}
     ): I_HTML_tree {
         attr.type = "checkbox";
@@ -174,8 +203,39 @@ class HTMLHandler {
             checked,
             attr,
             children: [],
-        }
-        if(context !== null) context.children.push(element);
+        };
+        if (context !== null) context.children.push(element);
+        return element;
+    }
+
+    /**
+     * Adds a select to an HTML Element
+     * @param context HTML Context to put the text in (null if no context)
+     * @param cssClass css Class
+     * @param id css Id
+     * @param name name attribute
+     * @param onchange function executed onchange
+     * @param attr attribute object
+     * @returns Created element
+     */
+    public addSelect(
+        context: I_HTML_tree,
+        cssClass: string,
+        id: string,
+        name: string,
+        onchange: string,
+        attr: I_HTML_attr = {}
+    ): I_HTML_tree {
+        attr.class = cssClass;
+        attr.id = id;
+        attr.name = name;
+        attr.onchange = onchange;
+        let element: I_HTML_tree = {
+            type: "select",
+            attr,
+            children: [],
+        };
+        if (context !== null) context.children.push(element);
         return element;
     }
 
@@ -187,13 +247,15 @@ class HTMLHandler {
     private drawElement(e: I_HTML_tree): string {
         let attr = this.convertAttributesToString(e.attr);
         let form = "";
-        let additionals = `${e.disabled ? " disabled" : ""}${e.checked ? " checked" : ""}${e.selected ? " selected" : ""}`;
-        if(e.type === "text") form += e.content;
-        else if (e.type === "input") form += `<${e.type} ${attr}${additionals}>`; 
+        let additionals = `${e.disabled ? " disabled" : ""}${e.checked ? " checked" : ""}${
+            e.selected ? " selected" : ""
+        }`;
+        if (e.type === "text") form += e.content;
+        else if (e.type === "input") form += `<${e.type} ${attr}${additionals}>`;
         else {
             form += `<${e.type} ${attr}${additionals}>`;
             for (let child of e.children) form += this.drawElement(child);
-            form += `</${e.type}>`
+            form += `</${e.type}>`;
         }
         return form;
     }
@@ -204,9 +266,9 @@ class HTMLHandler {
      * @returns attributes as string
      */
     private convertAttributesToString(attr: I_HTML_attr): string {
-        let attributes: {[index: string]: string} = <{[index: string]: string}>attr;
+        let attributes: { [index: string]: string } = <{ [index: string]: string }>attr;
         let attrString = "";
-        for(let key in attributes) attrString += `${key}="${attributes[key]}" `;
+        for (let key in attributes) attrString += `${key}="${attributes[key]}" `;
         return attrString;
     }
 }
