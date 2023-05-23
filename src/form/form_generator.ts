@@ -468,8 +468,9 @@ class FormGenerator {
             "",
             "OG_update()"
         );
+        let noteP = this.html.addP(context);
         this.html.addText(
-            context,
+            noteP,
             'Enter Colors as HTML Color Code (e.g. "#ffffff") in the format "#rrggbb".'
         );
     }
