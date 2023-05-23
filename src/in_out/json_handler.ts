@@ -41,7 +41,9 @@ class JSONHandler {
         }
         if (version !== config.version) {
             if (!this.handleVersionMismatch(importedObj)) {
-                document.getElementById(config.errorId).innerHTML = `<div class="w3-container w3-red">
+                document.getElementById(
+                    config.errorId
+                ).innerHTML = `<div class="w3-container w3-red">
                     <p>File was exported in version ${version} but your environment runs on ${config.version}. Migration is not possible.</p>
                 </div>`;
                 return;

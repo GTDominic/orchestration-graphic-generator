@@ -18,7 +18,12 @@ class SVGGenerator {
      * @param r radius
      * @param styleObj defines styling by {"type": "value"}
      */
-    public addCircle(cx: number, cy: number, r: number, styleObj: { [index: string]: string }): void {
+    public addCircle(
+        cx: number,
+        cy: number,
+        r: number,
+        styleObj: { [index: string]: string }
+    ): void {
         let style = this.convertStyle(styleObj);
         this.addElement("circle", { cx, cy, r, style });
     }
@@ -31,7 +36,13 @@ class SVGGenerator {
      * @param height height of the rectangle
      * @param styleObj defines styling by {"type": "value"}
      */
-    public addRectangle(x: number, y: number, width: number, height: number, styleObj: { [index: string]: string }): void {
+    public addRectangle(
+        x: number,
+        y: number,
+        width: number,
+        height: number,
+        styleObj: { [index: string]: string }
+    ): void {
         let style = this.convertStyle(styleObj);
         this.addElement("rect", { x, y, width, height, style });
     }
@@ -53,7 +64,12 @@ class SVGGenerator {
      * @param content Text content
      * @param styleObj defines styling by {"type": "value"}
      */
-    public addText(x: number, y: number, content: string, styleObj: { [index: string]: string }): void {
+    public addText(
+        x: number,
+        y: number,
+        content: string,
+        styleObj: { [index: string]: string }
+    ): void {
         let style = this.convertStyle(styleObj);
         this.addElement("text", { x, y, style }).innerHTML = content;
     }
@@ -83,7 +99,11 @@ class SVGGenerator {
      * @param context context where the svg element should be added to (if null use the svg-graphic)
      * @returns svg element that was added
      */
-    private addElement(form: string, attr: { [index: string]: any }, context: SVGElement | HTMLElement = null): SVGElement {
+    private addElement(
+        form: string,
+        attr: { [index: string]: any },
+        context: SVGElement | HTMLElement = null
+    ): SVGElement {
         if (context === null) context = this.svg;
         let element = document.createElementNS("http://www.w3.org/2000/svg", form);
         this.setAttr(element, attr);

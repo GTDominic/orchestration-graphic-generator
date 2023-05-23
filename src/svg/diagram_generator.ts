@@ -45,12 +45,21 @@ class DiagramGenerator {
         let biggestRadius = 0;
         for (let row of G_settings.rows) if (row.radius > biggestRadius) biggestRadius = row.radius;
         this.center = {
-            x: biggestRadius + config.diagramSettings.paddingSide + config.diagramSettings.registerPadding,
+            x:
+                biggestRadius +
+                config.diagramSettings.paddingSide +
+                config.diagramSettings.registerPadding,
             y: biggestRadius + config.diagramSettings.paddingTopBottom,
         };
-        this.xSize = 2 * biggestRadius + 2 * config.diagramSettings.paddingSide + 2 * config.diagramSettings.registerPadding;
+        this.xSize =
+            2 * biggestRadius +
+            2 * config.diagramSettings.paddingSide +
+            2 * config.diagramSettings.registerPadding;
         this.ySize = this.findLowestPoint() + config.diagramSettings.paddingTopBottom;
-        if (G_settings.display === "table") this.ySize += 2 * config.diagramSettings.paddingTopBottom + this.countRegisters() * config.diagramSettings.tableHeight;
+        if (G_settings.display === "table")
+            this.ySize +=
+                2 * config.diagramSettings.paddingTopBottom +
+                this.countRegisters() * config.diagramSettings.tableHeight;
         this.svg.setSize(this.xSize, this.ySize);
     }
 
@@ -116,7 +125,12 @@ class DiagramGenerator {
     private drawConductor(): void {
         let style = this.style.noStroke;
         style.fill = G_settings.conductorColor;
-        this.svg.addCircle(this.center.x, this.center.y - G_settings.conductorPos, G_settings.conductorSize, style);
+        this.svg.addCircle(
+            this.center.x,
+            this.center.y - G_settings.conductorPos,
+            G_settings.conductorSize,
+            style
+        );
     }
 
     /**
@@ -138,7 +152,10 @@ class DiagramGenerator {
                 style.fill = OGG_getTextColor(color);
                 this.svg.addText(x + 5, y + height / 2, `${reg.count}x ${reg.name}`, style);
                 y = x === config.diagramSettings.paddingSide ? y : y + height;
-                x = x === config.diagramSettings.paddingSide ? config.diagramSettings.paddingSide + width : config.diagramSettings.paddingSide;
+                x =
+                    x === config.diagramSettings.paddingSide
+                        ? config.diagramSettings.paddingSide + width
+                        : config.diagramSettings.paddingSide;
             }
         }
     }
