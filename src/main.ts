@@ -54,7 +54,11 @@ function OG_remove(type: "Row" | "Register" | "Color", i: number, register: numb
  * @param row Row that should be toggled or the row where the register should be toggled
  * @param register If "Register" defines the register to be toggled (not needed for "Row")
  */
-function OG_showHide(type: "Row" | "Register" | "Palettes", row: number, register: number = 0): void {
+function OG_showHide(
+    type: "Row" | "Register" | "Palettes",
+    row: number,
+    register: number = 0
+): void {
     form.showHide(type, row, register);
 }
 
@@ -112,5 +116,6 @@ function loadPage(): void {
     let year = new Date().getFullYear();
     document.getElementById("year").innerText = String(year);
     document.getElementById("version").innerText = config.version;
-    if (config.environment !== "production") document.getElementById("environment").innerText = `| Environment: ${config.environment}`;
+    if (config.environment !== "production")
+        document.getElementById("environment").innerText = `| Environment: ${config.environment}`;
 }
