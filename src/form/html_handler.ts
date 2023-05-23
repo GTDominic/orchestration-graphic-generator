@@ -100,6 +100,26 @@ class HTMLHandler {
     }
 
     /**
+     * Adds a span element to an HTML Element
+     * @param context HTML Context to put the text in (null if no context)
+     * @param id css id
+     * @param cssClass css class
+     * @param attr attribute object
+     * @returns Created element
+     */
+    public addSpan(context: I_HTML_tree, id: string, cssClass: string = "", attr: I_HTML_attr = {}): I_HTML_tree {
+        attr.id = id;
+        if(cssClass) attr.class = cssClass;
+        let element: I_HTML_tree = {
+            type: "span",
+            attr,
+            children: [],
+        }
+        if (context !== null) context.children.push(element);
+        return element;
+    }
+
+    /**
      * Adds a button to an HTML Element
      * @param context HTML Context to put the text in (null if no context)
      * @param cssClass css Class
@@ -233,6 +253,26 @@ class HTMLHandler {
         let element: I_HTML_tree = {
             type: "select",
             attr,
+            children: [],
+        };
+        if (context !== null) context.children.push(element);
+        return element;
+    }
+
+    /**
+     * Adds an option to an HTML Element
+     * @param context HTML Context to put the text in (null if no context)
+     * @param value value attribute
+     * @param selected true if selected
+     * @param attr attribute object
+     * @returns Created element
+     */
+    public addOption(context: I_HTML_tree, value: string, selected: boolean, attr: I_HTML_attr = {}): I_HTML_tree {
+        attr.value = value;
+        let element: I_HTML_tree = {
+            type: "option",
+            attr,
+            selected,
             children: [],
         };
         if (context !== null) context.children.push(element);

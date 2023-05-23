@@ -20,6 +20,7 @@ class FormGenerator {
      */
     public draw(): void {
         this.form = [];
+        this.colorPickerIds = [];
         let topHDiv = this.html.addDiv(null, "w3-container w3-indigo");
         this.form.push(topHDiv);
         this.html.addText(this.html.addHeader(1, topHDiv), "Orchestration Graphic Generator");
@@ -232,8 +233,9 @@ class FormGenerator {
             `OG_showHide('Register',${row},${i})`
         );
         this.html.addText(buttonShow, r.show ? "Hide &and;" : "Show &or;");
+        let headerTextSpan = this.html.addSpan(heading, `OG_Register_${row}:${i}_nameTag`);
         let headerText = r.name ? ` ${r.name}` : ` Register ${i + 1}`;
-        this.html.addText(heading, headerText);
+        this.html.addText(headerTextSpan, headerText);
         buttonHeaderCss += " w3-right";
         let buttonX = this.html.addButton(
             heading,
@@ -280,9 +282,85 @@ class FormGenerator {
     private drawSettings(context: I_HTML_tree): void {
         this.drawColorPicker(context, 0, {});
         this.drawColorPalettes(context);
+
         let display = this.html.addP(context);
         this.html.addText(display, "Register Display Type:");
-        
+        let displaySelect = this.html.addSelect(
+            display,
+            "w3-select",
+            "OG_Display",
+            "Display Type",
+            "OG_update()"
+        );
+        let displaySelectOp1 = this.html.addOption(
+            displaySelect,
+            "none",
+            G_settings.display === "none"
+        );
+        this.html.addText(displaySelectOp1, "None");
+        let displaySelectOp2 = this.html.addOption(
+            displaySelect,
+            "table",
+            G_settings.display === "table"
+        );
+        this.html.addText(displaySelectOp2, "Table");
+
+        this.drawSettingsConductor(context);
+
+        let playerSize = this.html.addP(context);
+        this.html.addText(playerSize, "Player Size:");
+        this.html.addInput(
+            playerSize,
+            "number",
+            "w3-input",
+            "OG_Player_Size",
+            "Size Player",
+            String(G_settings.playerSize),
+            "OG_update()",
+            false,
+            1
+        );
+
+        this.drawColorPicker(context, 2, { id: "player", bkgColor: G_settings.playerColor });
+    }
+
+    /**
+     * Draws the conductor settings
+     * @param context HTML context the settings are drawn in
+     */
+    private drawSettingsConductor(context: I_HTML_tree): void {
+        let div = this.html.addDiv(context, "w3-panel w3-light-green w3-card-4");
+        let heading = this.html.addHeader(3, div);
+        this.html.addText(heading, "Conductor:");
+
+        let position = this.html.addP(div);
+        this.html.addText(position, "Position:");
+        this.html.addInput(
+            position,
+            "number",
+            "w3-input",
+            "OG_Conductor_Pos",
+            "Position Conductor",
+            String(G_settings.conductorPos),
+            "OG_update()"
+        );
+        this.html.addText(position, "0 equals circle center point");
+
+        let size = this.html.addP(div);
+        this.html.addText(size, "Size:");
+        this.html.addInput(
+            size,
+            "number",
+            "w3-input",
+            "OG_Conductor_Size",
+            "Size Conductor",
+            String(G_settings.conductorSize),
+            "OG_update()",
+            false,
+            1
+        );
+
+        this.drawColorPicker(div, 2, { id: "conductor", bkgColor: G_settings.conductorColor });
     }
 
     /**
@@ -290,7 +368,33 @@ class FormGenerator {
      * @param context HTML context the palettes are drawn in
      */
     private drawColorPalettes(context: I_HTML_tree): void {
-
+        let showHide = this.html.addButton(
+            context,
+            "w3-button w3-blue-grey w3-medium",
+            "OG_showHide('Palettes')"
+        );
+        let showHideText = this.palletesActive
+            ? "Hide Palettes &and;"
+            : "Choose Palette Color &or;";
+        this.html.addText(showHide, showHideText);
+        if (!this.palletesActive) return;
+        let none = this.html.addDiv(context, "w3-row w3-margin-top w3-light-green OG_palette", "", {
+            onclick: "OG_choosePalette(null)",
+        });
+        this.html.addText(none, "None");
+        for (let i = 0; i < config.colorPalettes.length; i++) {
+            let palette = config.colorPalettes[i];
+            let size = 100 / palette.length;
+            let row = this.html.addDiv(context, "w3-row w3-margin-top OG_palette", "", {
+                onclick: `OG_choosePalette(${i})`,
+            });
+            for (let c of palette) {
+                let element = this.html.addDiv(row, "w3-col", "", {
+                    style: `width:${size}%;background-color:${c};color:${OGG_getTextColor(c)}`,
+                });
+                this.html.addText(element, c);
+            }
+        }
     }
 
     /**
@@ -616,8 +720,8 @@ class FormGenerator {
         );
         r.name = this.sanitizeString(nameElement.value);
         document.getElementById(`OG_Register_${row}:${id}_nameTag`).innerHTML = r.name
-            ? r.name
-            : `Register ${id + 1}`;
+            ? ` ${r.name}`
+            : ` Register ${id + 1}`;
         r.count = this.handleNumber(countElement);
     }
 

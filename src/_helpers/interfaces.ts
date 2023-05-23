@@ -20,7 +20,17 @@ interface I_Config {
 }
 
 interface I_HTML_tree {
-    type: "text" | "div" | "p" | `h${number}` | "input" | "option" | "select" | "label" | "button";
+    type:
+        | "text"
+        | "div"
+        | "p"
+        | `h${number}`
+        | "input"
+        | "option"
+        | "select"
+        | "label"
+        | "span"
+        | "button";
     content?: string;
     checked?: boolean;
     selected?: boolean;
