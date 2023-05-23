@@ -378,7 +378,7 @@ class FormGenerator {
         );
         let showHideText = this.palletesActive
             ? "Hide Palettes &and;"
-            : "Choose Palette Color &or;";
+            : "Choose Color Palette &or;";
         this.html.addText(showHide, showHideText);
         if (!this.palletesActive) return;
         let none = this.html.addDiv(context, "w3-row w3-margin-top w3-light-green OG_palette", "", {
