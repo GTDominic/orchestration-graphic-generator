@@ -830,7 +830,7 @@ class FormGenerator {
                     )}">${color}</div>`;
                 }
                 document.getElementById(
-                    `OG_Register_${attr.row}:${attr.register}_colorList`
+                    `OG_Register_${i}:${j}_colorList`
                 ).innerHTML = form;
             }
         }
