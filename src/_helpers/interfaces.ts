@@ -19,4 +19,38 @@ interface I_Config {
     colorPalettes: Array<Array<string>>;
 }
 
+interface I_HTML_tree {
+    type:
+        | "text"
+        | "div"
+        | "p"
+        | `h${number}`
+        | "input"
+        | "option"
+        | "select"
+        | "label"
+        | "span"
+        | "button";
+    content?: string;
+    checked?: boolean;
+    selected?: boolean;
+    disabled?: boolean;
+    attr?: I_HTML_attr;
+    children?: Array<I_HTML_tree>;
+}
+
+interface I_HTML_attr {
+    class?: string;
+    id?: string;
+    type?: string;
+    name?: string;
+    value?: string;
+    min?: string;
+    onclick?: string;
+    onchange?: string;
+    oninput?: string;
+    style?: string;
+    placeholder?: string;
+}
+
 type T_VersionNumber = `${number}.${number}.${number}${"" | `-${"dev" | "beta"}`}`;

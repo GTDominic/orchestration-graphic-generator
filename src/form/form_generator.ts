@@ -1,4 +1,8 @@
 class FormGenerator {
+    private html: HTMLHandler;
+    private form: Array<I_HTML_tree> = [];
+
+    // Old Attributes:
     private colorPickerIds: Array<string>;
     private palletesActive: boolean = false;
     private activePalette: number = null;
@@ -7,6 +11,7 @@ class FormGenerator {
      * Generates a form and draws it
      */
     constructor() {
+        this.html = new HTMLHandler();
         this.draw();
     }
 
@@ -14,20 +19,466 @@ class FormGenerator {
      * (Re)draws the form
      */
     public draw(): void {
+        this.form = [];
         this.colorPickerIds = [];
-        let form = `<div class="w3-container w3-indigo"><h1>Orchestration Graphic Generator</h1></div>`;
-        form += `<div class="w3-container w3-teal"><h2>Rows:</h2>`;
-        for (let i = 0; i < G_settings.rows.length; i++) form += this.drawRow(i);
-        form += `
-            <p>
-                <button class="w3-button w3-block w3-dark-grey" onclick="OG_add('Row')">Add Row</button>
-            </p>
-            </div>`;
-        form += `<div class="w3-container w3-green"><h2>General Settings:</h2>`;
-        form += this.drawSettings();
-        form += `</div>`;
-        document.getElementById(config.formAnchorId).innerHTML = form;
+        let topHDiv = this.html.addDiv(null, "w3-container w3-indigo");
+        this.form.push(topHDiv);
+        this.html.addText(this.html.addHeader(1, topHDiv), "Orchestration Graphic Generator");
+
+        let rowHTML = this.html.addDiv(null, "w3-container w3-teal");
+        this.form.push(rowHTML);
+        this.html.addText(this.html.addHeader(2, rowHTML), "Rows:");
+        for (let i = 0; i < G_settings.rows.length; i++) this.drawRow(rowHTML, i);
+        let rowHTMLp = this.html.addP(rowHTML);
+        let rowHTMLpButton = this.html.addButton(
+            rowHTMLp,
+            "w3-button w3-block w3-dark-grey",
+            "OG_add('Row')"
+        );
+        this.html.addText(rowHTMLpButton, "Add Row");
+
+        let settingsDiv = this.html.addDiv(null, "w3-container w3-green");
+        this.form.push(settingsDiv);
+        this.html.addText(this.html.addHeader(2, settingsDiv), "General Settings:");
+        this.drawSettings(settingsDiv);
+
+        this.html.draw(this.form, config.formAnchorId);
     }
+
+    /**
+     * Draws one row
+     * @param context HTML context the Row is drawn in
+     * @param i Row index
+     */
+    private drawRow(context: I_HTML_tree, i: number): void {
+        let r = G_settings.rows[i];
+        let wrapperClass = `w3-panel ${i % 2 === 0 ? "w3-light-blue" : "w3-cyan"} w3-card-4`;
+        let wrapper = this.html.addDiv(context, wrapperClass);
+
+        let heading = this.html.addHeader(3, wrapper);
+
+        let buttonHeaderCss = "w3-button w3-blue-grey w3-medium";
+        let buttonUp = this.html.addButton(
+            heading,
+            buttonHeaderCss,
+            `OG_move('Row',${i},${i - 1})`,
+            i === 0
+        );
+        this.html.addText(buttonUp, "&uarr;");
+        let buttonDown = this.html.addButton(
+            heading,
+            buttonHeaderCss,
+            `OG_move('Row',${i},${i + 1})`,
+            i === G_settings.rows.length - 1
+        );
+        this.html.addText(buttonDown, "&darr;");
+        let buttonShow = this.html.addButton(heading, buttonHeaderCss, `OG_showHide('Row',${i})`);
+        this.html.addText(buttonShow, r.show ? "Hide &and;" : "Show &or;");
+        this.html.addText(heading, ` Row ${i + 1}`);
+        buttonHeaderCss += " w3-right";
+        let buttonX = this.html.addButton(heading, buttonHeaderCss, `OG_remove('Row',${i})`);
+        this.html.addText(buttonX, "X");
+        if (!r.show) return;
+
+        let inputCss = "w3-input";
+        let checkCss = "w3-check";
+
+        let radiusP = this.html.addP(wrapper);
+        this.html.addText(radiusP, "Radius (in px):");
+        this.html.addInput(
+            radiusP,
+            "number",
+            inputCss,
+            `OG_Row_${i}_Radius`,
+            "Radius Row",
+            String(r.radius),
+            "OG_update()",
+            r.linked,
+            1
+        );
+
+        let linkRow = this.html.addP(wrapper);
+        this.html.addCheckbox(
+            linkRow,
+            checkCss,
+            `OG_Row_${i}_Linked`,
+            "Link to previous row",
+            "OG_update(1)",
+            r.linked,
+            i === 0
+        );
+        let linkRowLabel = this.html.addLabel(linkRow);
+        this.html.addText(linkRowLabel, " Link Radius to previous row");
+
+        let leftBorder = this.html.addP(wrapper);
+        this.html.addText(leftBorder, "Left Border (in °):");
+        this.html.addInput(
+            leftBorder,
+            "number",
+            inputCss,
+            `OG_Row_${i}_LeftBorder`,
+            "Left Border Row",
+            String(r.leftAngle),
+            "OG_update()"
+        );
+
+        let leftAngleBorder = this.html.addP(wrapper);
+        let players = 0;
+        for(let reg of G_settings.rows[i].registers) players += reg.count;
+        this.html.addCheckbox(
+            leftAngleBorder,
+            checkCss,
+            `OG_Row_${i}_LeftAngleBorder`,
+            "Left Angle by Border",
+            "OG_update()",
+            r.leftAngleBorder,
+            players <= 1
+        );
+        let leftAngleBorderLabel = this.html.addLabel(
+            leftAngleBorder,
+            `OG_Row_${i}_LeftAngleBorder_Label`
+        );
+        this.html.addText(
+            leftAngleBorderLabel,
+            ` Angle by Border or Player (currently ${r.leftAngleBorder ? "Player" : "Border"})`
+        );
+
+        let rightBorder = this.html.addP(wrapper);
+        this.html.addText(rightBorder, "Left Border (in °):");
+        this.html.addInput(
+            rightBorder,
+            "number",
+            inputCss,
+            `OG_Row_${i}_RightBorder`,
+            "Right Border Row",
+            String(r.rightAngle),
+            "OG_update()",
+            r.sync
+        );
+
+        let rightAngleBorder = this.html.addP(wrapper);
+        this.html.addCheckbox(
+            rightAngleBorder,
+            checkCss,
+            `OG_Row_${i}_RightAngleBorder`,
+            "Right Angle by Border",
+            "OG_update()",
+            r.rightAngleBorder,
+            r.sync || players <= 1
+        );
+        let rightAngleBorderLabel = this.html.addLabel(
+            rightAngleBorder,
+            `OG_Row_${i}_RightAngleBorder_Label`
+        );
+        this.html.addText(
+            rightAngleBorderLabel,
+            ` Angle by Border or Player (currently ${r.rightAngleBorder ? "Player" : "Border"})`
+        );
+
+        let sync = this.html.addP(wrapper);
+        this.html.addCheckbox(
+            sync,
+            checkCss,
+            `OG_Row_${i}_Sync`,
+            "Sync Border Row",
+            "OG_update(1)",
+            r.sync
+        );
+        let syncLabel = this.html.addLabel(sync);
+        this.html.addText(syncLabel, " Sync");
+
+        for (let j = 0; j < r.registers.length; j++) this.drawRegister(wrapper, j, i);
+
+        let addP = this.html.addP(wrapper);
+        let addPButton = this.html.addButton(
+            addP,
+            "w3-button w3-block w3-blue-grey",
+            `OG_add('Register',${i})`
+        );
+        this.html.addText(addPButton, "Add Register");
+    }
+
+    /**
+     * Draws one Register
+     * @param context HTML Context the register is drawn in
+     * @param i Id of the register
+     * @param row Id of the row
+     */
+    private drawRegister(context: I_HTML_tree, i: number, row: number): void {
+        let r = G_settings.rows[row].registers[i];
+        let wrapper = this.html.addDiv(
+            context,
+            `w3-panel ${
+                i % 2 === 0 ? "w3-aqua" : row % 2 === 0 ? "w3-cyan" : "w3-light-blue"
+            } w3-card-4`
+        );
+
+        let heading = this.html.addHeader(4, wrapper);
+
+        let buttonHeaderCss = "w3-button w3-blue-grey w3-medium";
+        let buttonUp = this.html.addButton(
+            heading,
+            buttonHeaderCss,
+            `OG_move('Register',${i},${i - 1},${row})`,
+            i === 0
+        );
+        this.html.addText(buttonUp, "&uarr;");
+        let buttonDown = this.html.addButton(
+            heading,
+            buttonHeaderCss,
+            `OG_move('Register',${i},${i + 1},${row})`,
+            i === G_settings.rows[row].registers.length - 1
+        );
+        this.html.addText(buttonDown, "&darr;");
+        let buttonShow = this.html.addButton(
+            heading,
+            buttonHeaderCss,
+            `OG_showHide('Register',${row},${i})`
+        );
+        this.html.addText(buttonShow, r.show ? "Hide &and;" : "Show &or;");
+        let headerTextSpan = this.html.addSpan(heading, `OG_Register_${row}:${i}_nameTag`);
+        let headerText = r.name ? ` ${r.name}` : ` Register ${i + 1}`;
+        this.html.addText(headerTextSpan, headerText);
+        buttonHeaderCss += " w3-right";
+        let buttonX = this.html.addButton(
+            heading,
+            buttonHeaderCss,
+            `OG_remove('Register',${row},${i})`
+        );
+        this.html.addText(buttonX, "X");
+        if (!r.show) return;
+
+        let inputCss = "w3-input";
+
+        let name = this.html.addP(wrapper);
+        this.html.addText(name, "Name:");
+        this.html.addInput(
+            name,
+            "text",
+            inputCss,
+            `OG_Register_${row}:${i}_name`,
+            "Name Register",
+            r.name,
+            "OG_update()"
+        );
+
+        let count = this.html.addP(wrapper);
+        this.html.addText(count, "Count:");
+        this.html.addInput(
+            count,
+            "number",
+            inputCss,
+            `OG_Register_${row}:${i}_count`,
+            "Count Register",
+            String(r.count),
+            "OG_update()",
+            false,
+            1
+        );
+        this.drawColorPicker(wrapper, 1, { row, register: i });
+    }
+
+    /**
+     * Draws the general Settings
+     * @param context HTML context the settings are drawn in
+     */
+    private drawSettings(context: I_HTML_tree): void {
+        this.drawColorPicker(context, 0, {});
+        this.drawColorPalettes(context);
+
+        let display = this.html.addP(context);
+        this.html.addText(display, "Register Display Type:");
+        let displaySelect = this.html.addSelect(
+            display,
+            "w3-select",
+            "OG_Display",
+            "Display Type",
+            "OG_update()"
+        );
+        let displaySelectOp1 = this.html.addOption(
+            displaySelect,
+            "none",
+            G_settings.display === "none"
+        );
+        this.html.addText(displaySelectOp1, "None");
+        let displaySelectOp2 = this.html.addOption(
+            displaySelect,
+            "table",
+            G_settings.display === "table"
+        );
+        this.html.addText(displaySelectOp2, "Table");
+
+        this.drawSettingsConductor(context);
+
+        let playerSize = this.html.addP(context);
+        this.html.addText(playerSize, "Player Size:");
+        this.html.addInput(
+            playerSize,
+            "number",
+            "w3-input",
+            "OG_Player_Size",
+            "Size Player",
+            String(G_settings.playerSize),
+            "OG_update()",
+            false,
+            1
+        );
+
+        this.drawColorPicker(context, 2, { id: "player", bkgColor: G_settings.playerColor });
+    }
+
+    /**
+     * Draws the conductor settings
+     * @param context HTML context the settings are drawn in
+     */
+    private drawSettingsConductor(context: I_HTML_tree): void {
+        let div = this.html.addDiv(context, "w3-panel w3-light-green w3-card-4");
+        let heading = this.html.addHeader(3, div);
+        this.html.addText(heading, "Conductor:");
+
+        let position = this.html.addP(div);
+        this.html.addText(position, "Position:");
+        this.html.addInput(
+            position,
+            "number",
+            "w3-input",
+            "OG_Conductor_Pos",
+            "Position Conductor",
+            String(G_settings.conductorPos),
+            "OG_update()"
+        );
+        this.html.addText(position, "0 equals circle center point");
+
+        let size = this.html.addP(div);
+        this.html.addText(size, "Size:");
+        this.html.addInput(
+            size,
+            "number",
+            "w3-input",
+            "OG_Conductor_Size",
+            "Size Conductor",
+            String(G_settings.conductorSize),
+            "OG_update()",
+            false,
+            1
+        );
+
+        this.drawColorPicker(div, 2, { id: "conductor", bkgColor: G_settings.conductorColor });
+    }
+
+    /**
+     * Draws the color palettes
+     * @param context HTML context the palettes are drawn in
+     */
+    private drawColorPalettes(context: I_HTML_tree): void {
+        let showHide = this.html.addButton(
+            context,
+            "w3-button w3-blue-grey w3-medium",
+            "OG_showHide('Palettes')"
+        );
+        let showHideText = this.palletesActive
+            ? "Hide Palettes &and;"
+            : "Choose Color Palette &or;";
+        this.html.addText(showHide, showHideText);
+        if (!this.palletesActive) return;
+        let none = this.html.addDiv(context, "w3-row w3-margin-top w3-light-green OG_palette", "", {
+            onclick: "OG_choosePalette(null)",
+        });
+        this.html.addText(none, "None");
+        for (let i = 0; i < config.colorPalettes.length; i++) {
+            let palette = config.colorPalettes[i];
+            let size = 100 / palette.length;
+            let row = this.html.addDiv(context, "w3-row w3-margin-top OG_palette", "", {
+                onclick: `OG_choosePalette(${i})`,
+            });
+            for (let c of palette) {
+                let element = this.html.addDiv(row, "w3-col", "", {
+                    style: `width:${size}%;background-color:${c};color:${OGG_getTextColor(c)}`,
+                });
+                this.html.addText(element, c);
+            }
+        }
+    }
+
+    /**
+     * Draws a color picker
+     * @param context HTML Context the Picker is drawn in
+     * @param mode Mode 0: Global; Mode 1: Register; Mode 2: Identifier
+     * @param attr Defines necessary attributes (Mode 1: Set row and register; Mode 2: Set id and bkg color)
+     */
+    private drawColorPicker(
+        context: I_HTML_tree,
+        mode: 0 | 1 | 2,
+        attr: { row?: number; register?: number; id?: string; bkgColor?: string }
+    ): void {
+        let listId =
+            mode === 0
+                ? "OG_Color_List"
+                : mode === 1
+                ? `OG_Register_${attr.row}:${attr.register}_colorList`
+                : `OG_Color_List_${attr.id}`;
+        if (mode === 2) this.colorPickerIds.push(listId);
+
+        let topP = this.html.addP(context);
+        this.html.addText(
+            topP,
+            `${mode === 0 ? "Custom colors" : "Color"} (click color to ${
+                mode === 0 ? "remove from list" : "choose"
+            }):`
+        );
+
+        let colorList = this.html.addDiv(context, "w3-bar", listId, {
+            style: `background-color: ${
+                mode === 0
+                    ? "white"
+                    : mode === 1
+                    ? G_settings.rows[attr.row].registers[attr.register].color
+                    : attr.bkgColor
+            }`,
+        });
+
+        for (
+            let i = 0;
+            i < (mode === 0 ? G_settings.customColors.length : G_settings.colorPalette.length);
+            i++
+        ) {
+            let color = mode === 0 ? G_settings.customColors[i] : G_settings.colorPalette[i];
+            let colorElement = this.html.addDiv(colorList, "w3-bar-item OG_color_element", "", {
+                onclick: `${
+                    mode === 0
+                        ? `OG_remove('Color', ${i})`
+                        : `OG_chooseColor('${attr.id}', ${attr.row}, ${attr.register}, '${color}')`
+                }`,
+                style: `background-color:${color};color:${OGG_getTextColor(color)}`,
+            });
+            this.html.addText(colorElement, color);
+        }
+        this.html.addInput(
+            context,
+            "text",
+            "w3-input w3-margin-top",
+            `${
+                mode === 0
+                    ? "OG_Color"
+                    : mode === 1
+                    ? `OG_Register_${attr.row}:${attr.register}_color`
+                    : `OG_Color_${attr.id}`
+            }`,
+            "Input Color",
+            "",
+            "OG_update()",
+            false,
+            null,
+            {placeholder: "Add color"}
+        );
+        let noteP = this.html.addP(context);
+        this.html.addText(
+            noteP,
+            'Enter Colors as HTML Color Code (e.g. "#ffffff") in the format "#rrggbb".'
+        );
+    }
+
+    // Old Functions:
 
     /**
      * Updates the settings and form
@@ -47,17 +498,45 @@ class FormGenerator {
      */
     public add(type: "Row" | "Register", row: number): void {
         if (type === "Row") {
-            let radius = G_settings.rows.length === 0 ? 100 : G_settings.rows[G_settings.rows.length - 1].radius + 50;
+            let radius =
+                G_settings.rows.length === 0
+                    ? 100
+                    : G_settings.rows[G_settings.rows.length - 1].radius + 50;
             let linked = G_settings.rows.length === 0 ? false : true;
-            let leftAngle = G_settings.rows.length === 0 ? 90 : G_settings.rows[G_settings.rows.length - 1].leftAngle;
-            let rightAngle = G_settings.rows.length === 0 ? 90 : G_settings.rows[G_settings.rows.length - 1].rightAngle;
-            let leftAngleBorder = G_settings.rows.length === 0 ? false : G_settings.rows[G_settings.rows.length - 1].leftAngleBorder;
-            let rightAngleBorder = G_settings.rows.length === 0 ? false : G_settings.rows[G_settings.rows.length - 1].rightAngleBorder;
-            G_settings.rows.push({ radius, linked, leftAngle, leftAngleBorder, rightAngle, rightAngleBorder, sync: true, show: true, registers: [] });
-            G_settings.rows[G_settings.rows.length - 1].registers.push({ name: "", count: 1, show: true, color: "#000000" });
+            let leftAngle =
+                G_settings.rows.length === 0
+                    ? 90
+                    : G_settings.rows[G_settings.rows.length - 1].leftAngle;
+            let rightAngle =
+                G_settings.rows.length === 0
+                    ? 90
+                    : G_settings.rows[G_settings.rows.length - 1].rightAngle;
+            let sync = G_settings.rows.length === 0 ? true : G_settings.rows[G_settings.rows.length - 1].sync;
+            G_settings.rows.push({
+                radius,
+                linked,
+                leftAngle,
+                leftAngleBorder: false,
+                rightAngle,
+                rightAngleBorder: false,
+                sync,
+                show: true,
+                registers: [],
+            });
+            G_settings.rows[G_settings.rows.length - 1].registers.push({
+                name: "",
+                count: 1,
+                show: true,
+                color: "#000000",
+            });
             this.assignDefaultColor(G_settings.rows.length - 1, 0);
         } else {
-            G_settings.rows[row].registers.push({ name: "", count: 1, show: true, color: "#000000" });
+            G_settings.rows[row].registers.push({
+                name: "",
+                count: 1,
+                show: true,
+                color: "#000000",
+            });
             this.assignDefaultColor(row, G_settings.rows[row].registers.length - 1);
         }
         this.draw();
@@ -66,25 +545,26 @@ class FormGenerator {
     /**
      * Removes a row or register
      * @param type "Row" | "Register"
-     * @param i Defines the row that is removed or where the register is removed from | Defines the color position
+     * @param row Defines the row that is removed or where the register is removed from | Defines the color position
      * @param register If "Register" defines the register to be removed
      */
-    public remove(type: "Row" | "Register" | "Color", i: number, register: number): void {
+    public remove(type: "Row" | "Register" | "Color", row: number, register: number): void {
         if (type === "Row") {
-            let r = G_settings.rows[i].radius;
-            let l = G_settings.rows[i].linked;
-            G_settings.rows.splice(i, 1);
-            if (i < G_settings.rows.length) {
-                let e = G_settings.rows[i];
+            let r = G_settings.rows[row].radius;
+            let l = G_settings.rows[row].linked;
+            G_settings.rows.splice(row, 1);
+            if (row < G_settings.rows.length) {
+                let e = G_settings.rows[row];
                 if (e.linked === true) {
                     e.radius = r;
                     e.linked = l;
                 }
             }
         } else if (type === "Register") {
-            G_settings.rows[i].registers.splice(register, 1);
+            G_settings.rows[row].registers.splice(register, 1);
+            this.updateRow(row);
         } else {
-            G_settings.customColors.splice(i, 1);
+            G_settings.customColors.splice(row, 1);
         }
         this.draw();
     }
@@ -99,7 +579,8 @@ class FormGenerator {
         if (type === "Row") {
             G_settings.rows[row].show = !G_settings.rows[row].show;
         } else if (type === "Register") {
-            G_settings.rows[row].registers[register].show = !G_settings.rows[row].registers[register].show;
+            G_settings.rows[row].registers[register].show =
+                !G_settings.rows[row].registers[register].show;
         } else this.palletesActive = !this.palletesActive;
         this.draw();
     }
@@ -164,68 +645,6 @@ class FormGenerator {
     }
 
     /**
-     * Renders the form for a row
-     * @param id Id of the row
-     * @returns html form string
-     */
-    private drawRow(id: number): string {
-        let r = G_settings.rows[id];
-        let form = `
-            <div class="w3-panel ${id % 2 === 0 ? "w3-light-blue" : "w3-cyan"} w3-card-4">
-            <h3>
-                <button class="w3-button w3-blue-grey w3-medium" onclick="OG_move('Row', ${id}, ${id - 1})"`;
-        if (id === 0) form += ` disabled`;
-        form += `>&uarr;</button><button class="w3-button w3-blue-grey w3-medium" onclick="OG_move('Row', ${id}, ${id + 1})"`;
-        if (id === G_settings.rows.length - 1) form += ` disabled`;
-        form += `>&darr;</button><button class="w3-button w3-blue-grey w3-medium" onclick="OG_showHide('Row', ${id})">`;
-        form += r.show ? `Hide &and;` : `Show &or;`;
-        form += `</button>
-                Row ${id + 1}
-                <button class="w3-right w3-button w3-blue-grey w3-medium" onclick="OG_remove('Row', ${id})">X</button>
-            </h3>`;
-        if (!r.show) return (form += `</div>`);
-        form += `<p>Radius (in px):
-                <input type="number" id="OG_Row_${id}_Radius" class="w3-input"
-                    name="Radius Row" value="${r.radius}" min="1" oninput="OG_update()"
-                    ${r.linked ? " disabled" : ""}>
-            </p>
-            <p><input type="checkbox" id="OG_Row_${id}_Linked" class="w3-check"
-                    name="Link to previous row"${r.linked ? " checked" : ""}${id === 0 ? " disabled" : ""}
-                    onchange="OG_update(1)">
-                <label> Link Radius to previous row</label>
-            <p>Left Border (in °):
-                <input type="number" id="OG_Row_${id}_LeftBorder" class="w3-input"
-                    name="Left Border Row" value="${r.leftAngle}" oninput="OG_update()">
-            </p>
-            <p><input type="checkbox" id="OG_Row_${id}_LeftAngleBorder" class="w3-check"
-                    name="Left Angle by Border"${r.leftAngleBorder ? " checked" : ""} onchange="OG_update()">
-                <label id="OG_Row_${id}_LeftAngleBorder_Label">
-                    Angle by Border or Player (currently ${r.leftAngleBorder ? "Player" : "Border"})
-                </label>
-            </p>
-            <p>Right Border (in °):
-                <input type="number" id="OG_Row_${id}_RightBorder" class="w3-input"
-                    name="Right Border Row" value="${r.rightAngle}" oninput="OG_update()"`;
-        if (r.sync) form += ` disabled`;
-        form += `>
-            </p>
-            <p><input type="checkbox" id="OG_Row_${id}_RightAngleBorder" class="w3-check"
-                    name="Right Angle by Border"${r.rightAngleBorder ? " checked" : ""}${r.sync ? " disabled" : ""} onchange="OG_update()">
-                <label id="OG_Row_${id}_RightAngleBorder_Label">
-                    Angle by Border or Player (currently ${r.rightAngleBorder ? "Player" : "Border"})
-                </label>
-            </p>
-            <p><input type="checkbox" id="OG_Row_${id}_Sync" class="w3-check"
-                    name="Sync Border Row"`;
-        if (r.sync) form += ` checked`;
-        form += ` onchange="OG_update(1)"><label> Sync</label>
-            </p>`;
-        for (let i = 0; i < r.registers.length; i++) form += this.drawRegister(i, id);
-        form += `<p><button class="w3-button w3-block w3-blue-grey" onclick="OG_add('Register', ${id})">Add Register</button></p></div>`;
-        return form;
-    }
-
-    /**
      * Updates the settings for a row
      * @param id Row id
      */
@@ -238,11 +657,19 @@ class FormGenerator {
             return;
         }
         let radiusElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_Radius`);
-        let leftBorderElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_LeftBorder`);
-        let leftTypeElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_LeftAngleBorder`);
+        let leftBorderElement = <HTMLInputElement>(
+            document.getElementById(`OG_Row_${id}_LeftBorder`)
+        );
+        let leftTypeElement = <HTMLInputElement>(
+            document.getElementById(`OG_Row_${id}_LeftAngleBorder`)
+        );
         let leftTypeLabel = document.getElementById(`OG_Row_${id}_LeftAngleBorder_Label`);
-        let rightBorderElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_RightBorder`);
-        let rightTypeElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_RightAngleBorder`);
+        let rightBorderElement = <HTMLInputElement>(
+            document.getElementById(`OG_Row_${id}_RightBorder`)
+        );
+        let rightTypeElement = <HTMLInputElement>(
+            document.getElementById(`OG_Row_${id}_RightAngleBorder`)
+        );
         let rightTypeLabel = document.getElementById(`OG_Row_${id}_RightAngleBorder_Label`);
         let syncElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_Sync`);
         let linkedElement = <HTMLInputElement>document.getElementById(`OG_Row_${id}_Linked`);
@@ -255,53 +682,36 @@ class FormGenerator {
         }
         r.leftAngle = Number(leftBorderElement.value);
         r.leftAngleBorder = leftTypeElement.checked;
-        leftTypeLabel.innerText = ` Angle by Border or Player (currently ${r.leftAngleBorder ? "Player" : "Border"})`;
+        leftTypeLabel.innerText = ` Angle by Border or Player (currently ${
+            r.leftAngleBorder ? "Player" : "Border"
+        })`;
         r.sync = syncElement.checked;
         if (r.sync) {
             r.rightAngle = r.leftAngle;
             rightBorderElement.value = String(r.rightAngle);
             r.rightAngleBorder = r.leftAngleBorder;
-            rightTypeLabel.innerText = ` Angle by Border or Player (currently ${r.rightAngleBorder ? "Player" : "Border"})`;
+            rightTypeLabel.innerText = ` Angle by Border or Player (currently ${
+                r.rightAngleBorder ? "Player" : "Border"
+            })`;
             rightTypeElement.checked = r.leftAngleBorder;
         } else {
             r.rightAngle = Number(rightBorderElement.value);
             r.rightAngleBorder = rightTypeElement.checked;
-            rightTypeLabel.innerText = ` Angle by Border or Player (currently ${r.rightAngleBorder ? "Player" : "Border"})`;
+            rightTypeLabel.innerText = ` Angle by Border or Player (currently ${
+                r.rightAngleBorder ? "Player" : "Border"
+            })`;
         }
         for (let i = 0; i < r.registers.length; i++) this.updateRegister(i, id);
-    }
-
-    /**
-     * Renders the form for a register
-     * @param id Id of the register
-     * @param row Row that the register is in
-     * @returns html form string
-     */
-    private drawRegister(id: number, row: number): string {
-        let r = G_settings.rows[row].registers[id];
-        let form = `
-            <div class="w3-panel ${id % 2 === 0 ? "w3-aqua" : row % 2 === 0 ? "w3-cyan" : "w3-light-blue"} w3-card-4">    
-            <h4><button class="w3-button w3-blue-grey w3-medium" onclick="OG_move('Register', ${id}, ${id - 1}, ${row})"`;
-        if (id === 0) form += ` disabled`;
-        form += `>&uarr;</button><button class="w3-button w3-blue-grey w3-medium" onclick="OG_move('Register', ${id}, ${id + 1}, ${row})"`;
-        if (id === G_settings.rows[row].registers.length - 1) form += ` disabled`;
-        form += `>&darr;</button><button class="w3-button w3-blue-grey w3-medium" onclick="OG_showHide('Register', ${row}, ${id})">`;
-        form += r.show ? `Hide &and;` : `Show &or;`;
-        form += `</button> <span id="OG_Register_${row}:${id}_nameTag">`;
-        form += r.name ? r.name : `Register ${id + 1}`;
-        form += `</span> <button class="w3-right w3-button w3-blue-grey w3-medium" onclick="OG_remove('Register', ${row}, ${id})">X</button></h4>`;
-        if (!r.show) return (form += `</div>`);
-        form += `<p>Name:
-                <input type="text" id="OG_Register_${row}:${id}_name" class="w3-input"
-                    name="Name Register" value="${r.name}" oninput="OG_update()">
-            </p>
-            <p>Count:
-                <input type="number" id="OG_Register_${row}:${id}_count" class="w3-input"
-                    name="Count Register" value="${r.count}" min="1" oninput="OG_update()">
-            </p>`;
-        form += this.drawColorPicker(1, { row, register: id });
-        form += `</div>`;
-        return form;
+        let players = 0;
+        for(let reg of G_settings.rows[id].registers) players += reg.count;
+        if(players <= 1) {
+            r.leftAngleBorder = false;
+            leftTypeElement.checked = false;
+            r.rightAngleBorder = false;
+            rightTypeElement.checked = false;
+        }
+        leftTypeElement.disabled = players <= 1;
+        rightTypeElement.disabled = r.sync || players <= 1;
     }
 
     /**
@@ -313,33 +723,17 @@ class FormGenerator {
         this.updateColorPicker(1, { row, register: id });
         let r = G_settings.rows[row].registers[id];
         if (!r.show) return;
-        let nameElement = <HTMLInputElement>document.getElementById(`OG_Register_${row}:${id}_name`);
-        let countElement = <HTMLInputElement>document.getElementById(`OG_Register_${row}:${id}_count`);
+        let nameElement = <HTMLInputElement>(
+            document.getElementById(`OG_Register_${row}:${id}_name`)
+        );
+        let countElement = <HTMLInputElement>(
+            document.getElementById(`OG_Register_${row}:${id}_count`)
+        );
         r.name = this.sanitizeString(nameElement.value);
-        document.getElementById(`OG_Register_${row}:${id}_nameTag`).innerHTML = r.name ? r.name : `Register ${id + 1}`;
+        document.getElementById(`OG_Register_${row}:${id}_nameTag`).innerHTML = r.name
+            ? ` ${r.name}`
+            : ` Register ${id + 1}`;
         r.count = this.handleNumber(countElement);
-    }
-
-    /**
-     * Renders the general settings
-     * @returns html form string
-     */
-    private drawSettings(): string {
-        let form = this.drawColorPicker(0, {});
-        form += this.drawColorPalettes();
-        form += `<p>Register Name Display Type:
-                <select class="w3-select" id="OG_Display" name="Display Type" onchange="OG_update()">
-                    <option value="none"${G_settings.display === "none" ? " selected" : ""}>None</option>
-                    <option value="table"${G_settings.display === "table" ? " selected" : ""}>Table</option>
-                </select>
-            </p>`;
-        form += this.drawSettingsConductor();
-        form += `<p>Player Size:
-                <input type="number" id="OG_Player_Size" class="w3-input"
-                    name="Size Player" value="${G_settings.playerSize}" min="1" oninput="OG_update()">
-            </p>`;
-        form += this.drawColorPicker(2, { id: "player", bkgColor: G_settings.playerColor });
-        return form;
     }
 
     /**
@@ -357,27 +751,6 @@ class FormGenerator {
     }
 
     /**
-     * Renders the settings for the conductor
-     * @returns html form string
-     */
-    private drawSettingsConductor(): string {
-        let form = `<div class="w3-panel w3-light-green w3-card-4">
-            <h3>Conductor:</h3>
-            <p>Position: 
-                <input type="number" id="OG_Conductor_Pos" class="w3-input"
-                    name="Position Conductor" value="${G_settings.conductorPos}" oninput="OG_update()">
-                0 equals circle center point
-            </p>
-            <p>Size:
-                <input type="number" id="OG_Conductor_Size" class="w3-input"
-                    name="Size Conductor" value="${G_settings.conductorSize}" min="1" oninput="OG_update()">
-            </p>`;
-        form += this.drawColorPicker(2, { id: "conductor", bkgColor: G_settings.conductorColor });
-        form += `</div>`;
-        return form;
-    }
-
-    /**
      * Updates the settings for the conductor
      */
     private updateSettingsConductor(): void {
@@ -390,40 +763,27 @@ class FormGenerator {
     }
 
     /**
-     * Draws a color picker
-     * @param mode Mode 0: Global; Mode 1: Register; Mode 2: Identifier
-     * @param attr Defines necessary attributes (Mode 1: Set row and register; Mode 2: Set id and bkg color)
-     * @returns html form string
-     */
-    private drawColorPicker(mode: 0 | 1 | 2, attr: { row?: number; register?: number; id?: string; bkgColor?: string }): string {
-        let listId = mode === 0 ? "OG_Color_List" : mode === 1 ? `OG_Register_${attr.row}:${attr.register}_colorList` : `OG_Color_List_${attr.id}`;
-        if (mode === 2) this.colorPickerIds.push(listId);
-        let form = `<p>${mode === 0 ? "Custom colors" : "Color"} (click color to ${mode === 0 ? "remove from list" : "choose"}):
-            <div class="w3-bar" id="${listId}"
-                style="background-color: ${mode === 0 ? "white" : mode === 1 ? G_settings.rows[attr.row].registers[attr.register].color : attr.bkgColor}">`;
-        for (let i = 0; i < (mode === 0 ? G_settings.customColors.length : G_settings.colorPalette.length); i++) {
-            let color = mode === 0 ? G_settings.customColors[i] : G_settings.colorPalette[i];
-            form += `<div class="w3-bar-item OG_color_element"
-                onclick="${mode === 0 ? `OG_remove('Color', ${i})` : `OG_chooseColor('${attr.id}', ${attr.row}, ${attr.register}, '${color}')`}"
-                style="background-color:${color};color:${OGG_getTextColor(color)}">${color}</div>`;
-        }
-        form += `</div><input type="text"
-                id="${mode === 0 ? "OG_Color" : mode === 1 ? `OG_Register_${attr.row}:${attr.register}_color` : `OG_Color_${attr.id}`}"
-                class="w3-input w3-margin-top" name="Input Color" oninput="OG_update()">
-            Enter Colors as HTML Color Code (e.g. "#ffffff") in the format "#rrggbb".
-        </p>`;
-        return form;
-    }
-
-    /**
      * Updates the color pickers
      * @param global Defines wether it is the global or a register specific color picker
      * @param row In Register Mode defines row id
      * @param register In Register Mode defines register id
      */
-    private updateColorPicker(mode: 0 | 1 | 2, attr: { row?: number; register?: number; id?: string }): string {
-        if (mode === 1 && (!G_settings.rows[attr.row].registers[attr.register].show || !G_settings.rows[attr.row].show)) return;
-        let id = mode === 0 ? "OG_Color" : mode === 1 ? `OG_Register_${attr.row}:${attr.register}_color` : `OG_Color_${attr.id}`;
+    private updateColorPicker(
+        mode: 0 | 1 | 2,
+        attr: { row?: number; register?: number; id?: string }
+    ): string {
+        if (
+            mode === 1 &&
+            (!G_settings.rows[attr.row].registers[attr.register].show ||
+                !G_settings.rows[attr.row].show)
+        )
+            return;
+        let id =
+            mode === 0
+                ? "OG_Color"
+                : mode === 1
+                ? `OG_Register_${attr.row}:${attr.register}_color`
+                : `OG_Color_${attr.id}`;
         let colorInput = <HTMLInputElement>document.getElementById(id);
         colorInput.value = colorInput.value.toLowerCase();
         if (!colorInput.value.match(/^#[0-9a-f]{6}$/i)) return null;
@@ -440,10 +800,14 @@ class FormGenerator {
         }
         if (mode === 1) {
             G_settings.rows[attr.row].registers[attr.register].color = value;
-            document.getElementById(`OG_Register_${attr.row}:${attr.register}_colorList`).setAttribute("style", `background-color: ${colorInput.value}`);
+            document
+                .getElementById(`OG_Register_${attr.row}:${attr.register}_colorList`)
+                .setAttribute("style", `background-color: ${colorInput.value}`);
         }
         if (mode === 2) {
-            document.getElementById(`OG_Color_List_${attr.id}`).setAttribute("style", `background-color: ${colorInput.value}`);
+            document
+                .getElementById(`OG_Color_List_${attr.id}`)
+                .setAttribute("style", `background-color: ${colorInput.value}`);
         }
         colorInput.value = "";
         let form = "";
@@ -461,9 +825,13 @@ class FormGenerator {
                 for (let k = 0; k < G_settings.colorPalette.length; k++) {
                     let color = G_settings.colorPalette[k];
                     form += `<div class="w3-bar-item OG_color_element" onclick="OG_chooseColor('', ${i}, ${j}, '${color}')"
-                        style="background-color:${color};color:${OGG_getTextColor(color)}">${color}</div>`;
+                        style="background-color:${color};color:${OGG_getTextColor(
+                        color
+                    )}">${color}</div>`;
                 }
-                document.getElementById(`OG_Register_${attr.row}:${attr.register}_colorList`).innerHTML = form;
+                document.getElementById(
+                    `OG_Register_${i}:${j}_colorList`
+                ).innerHTML = form;
             }
         }
         for (let id of this.colorPickerIds) {
@@ -471,35 +839,13 @@ class FormGenerator {
             for (let i = 0; i < G_settings.colorPalette.length; i++) {
                 let color = G_settings.colorPalette[i];
                 form += `<div class="w3-bar-item OG_color_element" onclick="OG_chooseColor('${id}', 0, 0, '${color}')"
-                    style="background-color:${color};color:${OGG_getTextColor(color)}">${color}</div>`;
+                    style="background-color:${color};color:${OGG_getTextColor(
+                    color
+                )}">${color}</div>`;
             }
             document.getElementById(id).innerHTML = form;
         }
         return value;
-    }
-
-    /**
-     * Draws the color picker
-     * @returns HTML Form string
-     */
-    private drawColorPalettes(): string {
-        let form = `<button class="w3-button w3-blue-grey w3-medium" onclick="OG_showHide('Palettes')">`;
-        form += this.palletesActive ? `Hide Palettes &and;` : `Choose Palette Color &or;`;
-        form += `</button>`;
-        if (!this.palletesActive) return form;
-        form += `<div>`;
-        form += `<div class="w3-row w3-margin-top w3-light-green OG_palette" onclick="OG_choosePalette(null)">None</div>`
-        for (let i = 0; i < config.colorPalettes.length; i++) {
-            let palette = config.colorPalettes[i];
-            let size = 100 / palette.length;
-            form += `<div class="w3-row w3-margin-top OG_palette" onclick="OG_choosePalette(${i})">`;
-            for (let c of palette) {
-                form += `<div class="w3-col" style="width:${size}%;background-color:${c};color:${OGG_getTextColor(c)}">${c}</div>`;
-            }
-            form += `</div>`;
-        }
-        form += `</div>`;
-        return form;
     }
 
     /**
@@ -516,7 +862,8 @@ class FormGenerator {
             }
         }
         if (freeColors.length >= 1) G_settings.rows[row].registers[register].color = freeColors[0];
-        else if (G_settings.colorPalette.length >= 1) G_settings.rows[row].registers[register].color = G_settings.colorPalette[0];
+        else if (G_settings.colorPalette.length >= 1)
+            G_settings.rows[row].registers[register].color = G_settings.colorPalette[0];
         else G_settings.rows[row].registers[register].color = "#000000";
     }
 

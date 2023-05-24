@@ -1,5 +1,5 @@
 const config: I_Config = {
-    version: "1.0.1",
+    version: "1.1.0",
     environment: "dev",
     name: "orchestration-graphic-generator",
     debug: false,
@@ -17,7 +17,19 @@ const config: I_Config = {
         drawCircles: false,
     },
     colorPalettes: [
-        ["#845ec2", "#d65db1", "#ff6f91", "#ff9671", "#ffc75f", "#f9f871", "#9bde7e", "#4bbc8e", "#039590", "#1c6e7d", "#2f4858"],
+        [
+            "#845ec2",
+            "#d65db1",
+            "#ff6f91",
+            "#ff9671",
+            "#ffc75f",
+            "#f9f871",
+            "#9bde7e",
+            "#4bbc8e",
+            "#039590",
+            "#1c6e7d",
+            "#2f4858",
+        ],
         ["#00ff16", "#00df77", "#00bb9e", "#0094a3", "#006d89", "#2f4858"],
     ],
 };
