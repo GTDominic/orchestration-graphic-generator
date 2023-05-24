@@ -466,7 +466,10 @@ class FormGenerator {
             }`,
             "Input Color",
             "",
-            "OG_update()"
+            "OG_update()",
+            false,
+            null,
+            {placeholder: "Add color"}
         );
         let noteP = this.html.addP(context);
         this.html.addText(

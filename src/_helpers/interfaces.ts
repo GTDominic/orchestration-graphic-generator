@@ -50,6 +50,7 @@ interface I_HTML_attr {
     onchange?: string;
     oninput?: string;
     style?: string;
+    placeholder?: string;
 }
 
 type T_VersionNumber = `${number}.${number}.${number}${"" | `-${"dev" | "beta"}`}`;
