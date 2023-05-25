@@ -363,6 +363,19 @@ class FormGenerator {
         let heading = this.html.addHeader(3, div);
         this.html.addText(heading, "Conductor:");
 
+        let enabled = this.html.addP(div);
+        this.html.addCheckbox(
+            enabled,
+            "w3-check",
+            "OG_Conductor_Enabled",
+            "Enable Conductor",
+            "OG_update(1)",
+            G_settings.conductorEnabled
+        );
+        this.html.addText(enabled, " Enable conductor");
+
+        if (!G_settings.conductorEnabled) return;
+
         let position = this.html.addP(div);
         this.html.addText(position, "Position:");
         this.html.addInput(
@@ -811,6 +824,10 @@ class FormGenerator {
      * Updates the settings for the conductor
      */
     private updateSettingsConductor(): void {
+        let enabledElement = <HTMLInputElement>document.getElementById("OG_Conductor_Enabled");
+        let oldEnabled = G_settings.conductorEnabled;
+        G_settings.conductorEnabled = enabledElement.checked;
+        if (!G_settings.conductorEnabled || !oldEnabled) return;
         let color = this.updateColorPicker(2, { id: "conductor" });
         if (color) G_settings.conductorColor = color;
         let posElement = <HTMLInputElement>document.getElementById("OG_Conductor_Pos");

@@ -123,6 +123,7 @@ class DiagramGenerator {
      * Draws the conductor dot in the center
      */
     private drawConductor(): void {
+        if (!G_settings.conductorEnabled) return;
         let style = this.style.noStroke;
         style.fill = G_settings.conductorColor;
         this.svg.addCircle(
