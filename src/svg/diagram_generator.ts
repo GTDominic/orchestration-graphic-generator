@@ -107,6 +107,10 @@ class DiagramGenerator {
             let d = `M${p1.x} ${p1.y} A${rO} ${rO} 0 ${over} 1 ${p2.x} ${p2.y} 
                 L${p3.x} ${p3.y} A${rI} ${rI} 0 ${over} 0 ${p4.x} ${p4.y} Z`;
             let color = row.registers[i].color;
+            if (row.registers[i].linked) {
+                let lc = row.registers[i].linked.split(":");
+                color = G_settings.rows[Number(lc[0])].registers[Number(lc[1])].color;
+            }
             let style = this.style.noStroke;
             style.fill = color;
             this.svg.addPath(d, style);
@@ -143,15 +147,24 @@ class DiagramGenerator {
         let x = config.diagramSettings.paddingSide;
         const width = this.xSize / 2 - config.diagramSettings.paddingSide;
         const height = config.diagramSettings.tableHeight;
-        for (let row of G_settings.rows) {
-            for (let reg of row.registers) {
+        for (let i = 0; i < G_settings.rows.length; i++) {
+            for (let j = 0; j < G_settings.rows[i].registers.length; j++) {
+                let reg = G_settings.rows[i].registers[j];
+                if (reg.linked) continue;
                 let color = reg.color;
                 let style = this.style.noStroke;
                 style.fill = color;
                 this.svg.addRectangle(x, y, width, height, style);
                 style = this.style.text;
                 style.fill = OGG_getTextColor(color);
-                this.svg.addText(x + 5, y + height / 2, `${reg.count}x ${reg.name}`, style);
+                let count = reg.count;
+                for (let k = 0; k < G_settings.rows.length; k++) {
+                    for (let l = 0; l < G_settings.rows[k].registers.length; l++) {
+                        let r = G_settings.rows[k].registers[l];
+                        if (r.linked === `${i}:${j}`) count += r.count;
+                    }
+                }
+                this.svg.addText(x + 5, y + height / 2, `${count}x ${reg.name}`, style);
                 y = x === config.diagramSettings.paddingSide ? y : y + height;
                 x =
                     x === config.diagramSettings.paddingSide
