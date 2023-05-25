@@ -245,6 +245,11 @@ class FormGenerator {
         this.html.addText(buttonShow, r.show ? "Hide &and;" : "Show &or;");
         let headerTextSpan = this.html.addSpan(heading, `OG_Register_${row}:${i}_nameTag`);
         let headerText = r.name ? ` ${r.name}` : ` Register ${i + 1}`;
+        if (r.linked) {
+            let lc = r.linked.split(":");
+            let le = G_settings.rows[Number(lc[0])].registers[Number(lc[1])];
+            headerText = le.name ? ` ${le.name}` : ` Row: ${Number(lc[0]) + 1}, Register: ${Number(lc[1]) + 1}`;
+        }
         this.html.addText(headerTextSpan, headerText);
         buttonHeaderCss += " w3-right";
         let buttonX = this.html.addButton(
@@ -822,7 +827,7 @@ class FormGenerator {
     private updateRegister(id: number, row: number): void {
         let r = G_settings.rows[row].registers[id];
         if (!r.show) return;
-        if(!r.linked) {
+        if (!r.linked) {
             this.updateColorPicker(1, { row, register: id });
             let nameElement = <HTMLInputElement>(
                 document.getElementById(`OG_Register_${row}:${id}_name`)
@@ -832,7 +837,9 @@ class FormGenerator {
                 ? ` ${r.name}`
                 : ` Register ${id + 1}`;
         }
-        let linkedElement = <HTMLInputElement>document.getElementById(`OG_Register_${row}:${id}_link`);
+        let linkedElement = <HTMLInputElement>(
+            document.getElementById(`OG_Register_${row}:${id}_link`)
+        );
         r.linked = <`${number}:${number}`>linkedElement.value;
         let countElement = <HTMLInputElement>(
             document.getElementById(`OG_Register_${row}:${id}_count`)
