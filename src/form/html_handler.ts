@@ -154,7 +154,7 @@ class HTMLHandler {
 
     /**
      * Adds an input to an HTML Element (not to use for checkboxes)
-     * @param context HTML Context to put the text in (null if no context)
+     * @param context HTML Context to put the text in
      * @param type type of input
      * @param cssClass css Class
      * @param id css Id
@@ -164,7 +164,6 @@ class HTMLHandler {
      * @param disabled true if disabled
      * @param min minimum value
      * @param attr attribute object
-     * @returns created element
      */
     public addInput(
         context: I_HTML_tree,
@@ -177,7 +176,7 @@ class HTMLHandler {
         disabled: boolean = false,
         min?: number,
         attr: I_HTML_attr = {}
-    ): I_HTML_tree {
+    ): void {
         attr.type = type;
         attr.class = cssClass;
         attr.id = id;
@@ -191,8 +190,7 @@ class HTMLHandler {
             attr,
             children: [],
         };
-        if (context !== null) context.children.push(element);
-        return element;
+        context.children.push(element);
     }
 
     /**
