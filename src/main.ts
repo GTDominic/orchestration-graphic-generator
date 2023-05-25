@@ -63,14 +63,24 @@ function OG_showHide(
 }
 
 /**
+ * Open/Close the move list on a register
+ * @param row row ID
+ * @param reg register ID
+ */
+function OG_openMoveList(row: number, reg: number): void {
+    form.openMoveList(row, reg);
+}
+
+/**
  * Moves a Row or Register from one place to another (registers cannot jump rows)
- * @param type "Row" | "Register"
+ * @param type "Row" | "Register" | "RegisterRow"
  * @param from fromId
  * @param to toId
- * @param row If "Register" defines the row where the register is moved in (not needed for "Row")
+ * @param additional If "Register" defines the row where the register is moved in (not needed for "Row")
+ *                   If "RegisterRow" defines the register to move
  */
-function OG_move(type: "Row" | "Register", from: number, to: number, row: number = 0): void {
-    form.move(type, from, to, row);
+function OG_move(type: "Row" | "Register" | "RegisterRow", from: number, to: number, additional: number = 0): void {
+    form.move(type, from, to, additional);
     new DiagramGenerator();
 }
 

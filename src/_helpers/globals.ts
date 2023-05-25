@@ -39,4 +39,5 @@ interface I_RegisterSettings {
     count: number;
     color: string;
     show: boolean;
+    showMove: boolean;
 }

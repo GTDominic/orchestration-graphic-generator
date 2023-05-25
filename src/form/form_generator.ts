@@ -124,7 +124,7 @@ class FormGenerator {
 
         let leftAngleBorder = this.html.addP(wrapper);
         let players = 0;
-        for(let reg of G_settings.rows[i].registers) players += reg.count;
+        for (let reg of G_settings.rows[i].registers) players += reg.count;
         this.html.addCheckbox(
             leftAngleBorder,
             checkCss,
@@ -230,6 +230,13 @@ class FormGenerator {
             i === G_settings.rows[row].registers.length - 1
         );
         this.html.addText(buttonDown, "&darr;");
+        let moveRow = this.html.addButton(
+            heading,
+            buttonHeaderCss,
+            `OG_openMoveList(${row}, ${i})`,
+            G_settings.rows.length <= 1
+        );
+        this.html.addText(moveRow, "Move to other row");
         let buttonShow = this.html.addButton(
             heading,
             buttonHeaderCss,
@@ -246,6 +253,26 @@ class FormGenerator {
             `OG_remove('Register',${row},${i})`
         );
         this.html.addText(buttonX, "X");
+
+        if (r.showMove) {
+            let showMove = this.html.addP(wrapper);
+            for (let j = 0; j < G_settings.rows.length; j++) {
+                if (j === row) continue;
+                let element = this.html.addButton(
+                    showMove,
+                    "w3-button w3-blue-grey",
+                    `OG_move('RegisterRow',${row},${j},${i})`
+                );
+                this.html.addText(element, `To Row: ${j + 1}`);
+            }
+            let element = this.html.addButton(
+                showMove,
+                "w3-button w3-blue-grey",
+                `OG_openMoveList(${row},${i})`
+            );
+            this.html.addText(element, "Close");
+        }
+
         if (!r.show) return;
 
         let inputCss = "w3-input";
@@ -469,13 +496,24 @@ class FormGenerator {
             "OG_update()",
             false,
             null,
-            {placeholder: "Add color"}
+            { placeholder: "Add color" }
         );
         let noteP = this.html.addP(context);
         this.html.addText(
             noteP,
             'Enter Colors as HTML Color Code (e.g. "#ffffff") in the format "#rrggbb".'
         );
+    }
+
+    /**
+     * Open/Close the move list on a register
+     * @param row row id
+     * @param reg register id
+     */
+    public openMoveList(row: number, reg: number): void {
+        G_settings.rows[row].registers[reg].showMove =
+            !G_settings.rows[row].registers[reg].showMove;
+        this.draw();
     }
 
     // Old Functions:
@@ -511,7 +549,10 @@ class FormGenerator {
                 G_settings.rows.length === 0
                     ? 90
                     : G_settings.rows[G_settings.rows.length - 1].rightAngle;
-            let sync = G_settings.rows.length === 0 ? true : G_settings.rows[G_settings.rows.length - 1].sync;
+            let sync =
+                G_settings.rows.length === 0
+                    ? true
+                    : G_settings.rows[G_settings.rows.length - 1].sync;
             G_settings.rows.push({
                 radius,
                 linked,
@@ -527,6 +568,7 @@ class FormGenerator {
                 name: "",
                 count: 1,
                 show: true,
+                showMove: false,
                 color: "#000000",
             });
             this.assignDefaultColor(G_settings.rows.length - 1, 0);
@@ -535,6 +577,7 @@ class FormGenerator {
                 name: "",
                 count: 1,
                 show: true,
+                showMove: false,
                 color: "#000000",
             });
             this.assignDefaultColor(row, G_settings.rows[row].registers.length - 1);
@@ -587,12 +630,26 @@ class FormGenerator {
 
     /**
      * Moves a Row or Register from one place to another (registers cannot jump rows)
-     * @param type "Row" | "Register"
+     * @param type "Row" | "Register" | "RegisterRow"
      * @param from fromId
      * @param to toId
-     * @param row If "Register" defines the row where the register is moved in
+     * @param additional If "Register" defines the row where the register is moved in
+     *                   If "RegisterRow" defines the register to move
      */
-    public move(type: "Row" | "Register", from: number, to: number, row: number) {
+    public move(
+        type: "Row" | "Register" | "RegisterRow",
+        from: number,
+        to: number,
+        additional: number
+    ) {
+        if (type === "RegisterRow") {
+            this.openMoveList(from, additional);
+            let r = G_settings.rows[from].registers.splice(additional, 1)[0];
+            G_settings.rows[to].registers.push(r);
+            this.draw();
+            this.updateRow(from);
+            return;
+        }
         let r: Array<I_RegisterSettings | I_RowSettings>;
         let r1: number, r2: number, l1: boolean, l2: boolean;
         if (type === "Row") {
@@ -602,7 +659,7 @@ class FormGenerator {
             l1 = (<I_RowSettings>r[from]).linked;
             l2 = (<I_RowSettings>r[to]).linked;
         } else {
-            r = G_settings.rows[row].registers;
+            r = G_settings.rows[additional].registers;
         }
         let temp = r[from];
         r[from] = r[to];
@@ -703,8 +760,8 @@ class FormGenerator {
         }
         for (let i = 0; i < r.registers.length; i++) this.updateRegister(i, id);
         let players = 0;
-        for(let reg of G_settings.rows[id].registers) players += reg.count;
-        if(players <= 1) {
+        for (let reg of G_settings.rows[id].registers) players += reg.count;
+        if (players <= 1) {
             r.leftAngleBorder = false;
             leftTypeElement.checked = false;
             r.rightAngleBorder = false;
@@ -829,9 +886,7 @@ class FormGenerator {
                         color
                     )}">${color}</div>`;
                 }
-                document.getElementById(
-                    `OG_Register_${i}:${j}_colorList`
-                ).innerHTML = form;
+                document.getElementById(`OG_Register_${i}:${j}_colorList`).innerHTML = form;
             }
         }
         for (let id of this.colorPickerIds) {

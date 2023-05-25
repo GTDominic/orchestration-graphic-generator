@@ -1,5 +1,5 @@
 const config: I_Config = {
-    version: "1.1.0",
+    version: "1.2.0-dev",
     environment: "dev",
     name: "orchestration-graphic-generator",
     debug: false,
