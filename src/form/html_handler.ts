@@ -274,6 +274,7 @@ class HTMLHandler {
         context: I_HTML_tree,
         value: string,
         selected: boolean,
+        disabled: boolean = false,
         attr: I_HTML_attr = {}
     ): I_HTML_tree {
         attr.value = value;
@@ -281,6 +282,7 @@ class HTMLHandler {
             type: "option",
             attr,
             selected,
+            disabled,
             children: [],
         };
         if (context !== null) context.children.push(element);

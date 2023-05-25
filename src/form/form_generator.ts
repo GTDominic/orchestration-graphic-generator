@@ -275,6 +275,32 @@ class FormGenerator {
 
         if (!r.show) return;
 
+        let link = this.html.addP(wrapper);
+        this.html.addText(link, "Link to row:");
+        let linkSelect = this.html.addSelect(
+            link,
+            "w3-select",
+            `OG_Register_${row}:${i}_link`,
+            "Link to other register",
+            "OG_update(1)"
+        );
+        let linkSelectNone = this.html.addOption(linkSelect, "None", r.linked === null);
+        this.html.addText(linkSelectNone, "None");
+        for (let j = 0; j < G_settings.rows.length; j++) {
+            if (j === row) continue;
+            for (let k = 0; k < G_settings.rows[j].registers.length; k++) {
+                let linkSelectElement = this.html.addOption(
+                    linkSelect,
+                    `${j}:${k}`,
+                    r.linked === `${j}:${k}`,
+                    false
+                );
+                let e = G_settings.rows[j].registers[k];
+                let elementText = e.name ? e.name : `Row: ${j + 1}, Register: ${k + 1}`;
+                this.html.addText(linkSelectElement, elementText);
+            }
+        }
+
         let inputCss = "w3-input";
 
         let name = this.html.addP(wrapper);
@@ -578,6 +604,7 @@ class FormGenerator {
                 registers: [],
             });
             G_settings.rows[G_settings.rows.length - 1].registers.push({
+                linked: null,
                 name: "",
                 count: 1,
                 show: true,
@@ -587,6 +614,7 @@ class FormGenerator {
             this.assignDefaultColor(G_settings.rows.length - 1, 0);
         } else {
             G_settings.rows[row].registers.push({
+                linked: null,
                 name: "",
                 count: 1,
                 show: true,

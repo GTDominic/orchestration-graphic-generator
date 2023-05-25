@@ -37,6 +37,7 @@ interface I_RowSettings {
 }
 
 interface I_RegisterSettings {
+    linked: `${number}:${number}`;
     name: string;
     count: number;
     color: string;
