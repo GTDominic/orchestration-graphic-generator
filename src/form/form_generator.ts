@@ -284,7 +284,7 @@ class FormGenerator {
             "Link to other register",
             "OG_update(1)"
         );
-        let linkSelectNone = this.html.addOption(linkSelect, "None", r.linked === null);
+        let linkSelectNone = this.html.addOption(linkSelect, "", r.linked === null);
         this.html.addText(linkSelectNone, "None");
         for (let j = 0; j < G_settings.rows.length; j++) {
             if (j === row) continue;
@@ -303,17 +303,19 @@ class FormGenerator {
 
         let inputCss = "w3-input";
 
-        let name = this.html.addP(wrapper);
-        this.html.addText(name, "Name:");
-        this.html.addInput(
-            name,
-            "text",
-            inputCss,
-            `OG_Register_${row}:${i}_name`,
-            "Name Register",
-            r.name,
-            "OG_update()"
-        );
+        if (!r.linked) {
+            let name = this.html.addP(wrapper);
+            this.html.addText(name, "Name:");
+            this.html.addInput(
+                name,
+                "text",
+                inputCss,
+                `OG_Register_${row}:${i}_name`,
+                "Name Register",
+                r.name,
+                "OG_update()"
+            );
+        }
 
         let count = this.html.addP(wrapper);
         this.html.addText(count, "Count:");
@@ -328,7 +330,7 @@ class FormGenerator {
             false,
             1
         );
-        this.drawColorPicker(wrapper, 1, { row, register: i });
+        if (!r.linked) this.drawColorPicker(wrapper, 1, { row, register: i });
     }
 
     /**
@@ -818,19 +820,23 @@ class FormGenerator {
      * @param row Row that the register is in
      */
     private updateRegister(id: number, row: number): void {
-        this.updateColorPicker(1, { row, register: id });
         let r = G_settings.rows[row].registers[id];
         if (!r.show) return;
-        let nameElement = <HTMLInputElement>(
-            document.getElementById(`OG_Register_${row}:${id}_name`)
-        );
+        if(!r.linked) {
+            this.updateColorPicker(1, { row, register: id });
+            let nameElement = <HTMLInputElement>(
+                document.getElementById(`OG_Register_${row}:${id}_name`)
+            );
+            r.name = this.sanitizeString(nameElement.value);
+            document.getElementById(`OG_Register_${row}:${id}_nameTag`).innerHTML = r.name
+                ? ` ${r.name}`
+                : ` Register ${id + 1}`;
+        }
+        let linkedElement = <HTMLInputElement>document.getElementById(`OG_Register_${row}:${id}_link`);
+        r.linked = <`${number}:${number}`>linkedElement.value;
         let countElement = <HTMLInputElement>(
             document.getElementById(`OG_Register_${row}:${id}_count`)
         );
-        r.name = this.sanitizeString(nameElement.value);
-        document.getElementById(`OG_Register_${row}:${id}_nameTag`).innerHTML = r.name
-            ? ` ${r.name}`
-            : ` Register ${id + 1}`;
         r.count = this.handleNumber(countElement);
     }
 
