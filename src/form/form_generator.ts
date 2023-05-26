@@ -297,6 +297,7 @@ class FormGenerator {
         for (let j = 0; j < G_settings.rows.length; j++) {
             if (j === row) continue;
             for (let k = 0; k < G_settings.rows[j].registers.length; k++) {
+                if(G_settings.rows[j].registers[k].linked !== "-1:-1") continue;
                 let linkSelectElement = this.html.addOption(
                     linkSelect,
                     `${j}:${k}`,
@@ -580,13 +581,23 @@ class FormGenerator {
         withReg: number
     ): boolean {
         // Check rows touching === linked
-        if (fromRow !== withRow + 1 && fromRow !== withRow - 1) return true;
         if (fromRow > withRow) {
             if (!G_settings.rows[fromRow].linked) return true;
         } else {
             if (!G_settings.rows[withRow].linked) return true;
         }
-
+        // TODO: check to not allow two links on same row
+        if (fromRow !== withRow + 1 && fromRow !== withRow - 1) {
+            let nextRow = G_settings.rows[fromRow > withRow ? fromRow - 1 : fromRow + 1];
+            let elinked: number = null;
+            for(let i = 0; i < nextRow.registers.length; i++) {
+                if(nextRow.registers[i].linked === `${withRow}:${withReg}`) elinked = i;
+            }
+            if(elinked === null) return true;
+            withRow = fromRow > withRow ? fromRow - 1 : fromRow + 1;
+            withReg = elinked;
+        }
+        
         let borders1 = OGG_getBorderPlayerAngles(G_settings.rows[fromRow]).border;
         let borders2 = OGG_getBorderPlayerAngles(G_settings.rows[withRow]).border;
 
@@ -872,7 +883,7 @@ class FormGenerator {
             }
         }
         if (!r.show) return;
-        if (!r.linked) {
+        if (r.linked === "-1:-1") {
             this.updateColorPicker(1, { row, register: id });
             let nameElement = <HTMLInputElement>(
                 document.getElementById(`OG_Register_${row}:${id}_name`)
@@ -981,6 +992,7 @@ class FormGenerator {
             for (let j = 0; j < G_settings.rows[i].registers.length; j++) {
                 let reg = G_settings.rows[i].registers[j];
                 if (!reg.show) continue;
+                if (reg.linked !== "-1:-1") continue;
                 form = "";
                 for (let k = 0; k < G_settings.colorPalette.length; k++) {
                     let color = G_settings.colorPalette[k];
