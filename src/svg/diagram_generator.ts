@@ -136,7 +136,7 @@ class DiagramGenerator {
         for (let i = 0; i < G_settings.rows.length; i++) {
             for (let j = 0; j < G_settings.rows[i].registers.length; j++) {
                 let reg = G_settings.rows[i].registers[j];
-                if (reg.linked) continue;
+                if (reg.linked !== "-1:-1") continue;
                 let color = reg.color;
                 let style = this.style.noStroke;
                 style.fill = color;
@@ -206,7 +206,11 @@ class DiagramGenerator {
             if (right > lowestRight) lowestRight = right;
         }
         lowest = lowestLeft > lowestRight ? lowestLeft : lowestRight;
-        return lowest > conductorPos ? lowest : conductorPos;
+        return G_settings.conductorEnabled
+            ? lowest > conductorPos
+                ? lowest
+                : conductorPos
+            : lowest;
     }
 
     /**
