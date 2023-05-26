@@ -77,25 +77,11 @@ class DiagramGenerator {
      * @param row The row that is added
      */
     private drawRegisters(row: I_RowSettings): void {
-        let players = this.getRowPlayers(row);
+        let players = OGG_getRowPlayers(row);
         if (players === 0) return;
-        let playerAngles: Array<number> = [];
-        let borderAngles: Array<number> = [];
-        let a = (row.leftAngleBorder ? 0.5 : 0) + (row.rightAngleBorder ? 0.5 : 0);
-        let distance = (row.leftAngle + row.rightAngle) / (players - a);
-        let tempAngle = (row.leftAngleBorder ? 0 : distance / 2) - row.leftAngle;
-        for (let i = 0; i < players; i++) {
-            playerAngles.push(tempAngle);
-            tempAngle += distance;
-        }
-        if (config.environment === "dev" && config.debug) console.log(playerAngles);
-        tempAngle = -row.leftAngle - (row.leftAngleBorder ? distance / 2 : 0);
-        borderAngles.push(tempAngle);
-        for (let reg of row.registers) {
-            tempAngle += distance * reg.count;
-            borderAngles.push(tempAngle);
-        }
-        if (config.environment === "dev" && config.debug) console.log(borderAngles);
+        let borders = OGG_getBorderPlayerAngles(row);
+        let playerAngles: Array<number> = borders.player;
+        let borderAngles: Array<number> = borders.border;
         for (let i = 0; i < borderAngles.length - 1; i++) {
             let rO = row.radius + config.diagramSettings.registerPadding;
             let rI = row.radius - config.diagramSettings.registerPadding;
@@ -107,6 +93,10 @@ class DiagramGenerator {
             let d = `M${p1.x} ${p1.y} A${rO} ${rO} 0 ${over} 1 ${p2.x} ${p2.y} 
                 L${p3.x} ${p3.y} A${rI} ${rI} 0 ${over} 0 ${p4.x} ${p4.y} Z`;
             let color = row.registers[i].color;
+            if (row.registers[i].linked !== "-1:-1") {
+                let lc = row.registers[i].linked.split(":");
+                color = G_settings.rows[Number(lc[0])].registers[Number(lc[1])].color;
+            }
             let style = this.style.noStroke;
             style.fill = color;
             this.svg.addPath(d, style);
@@ -123,6 +113,7 @@ class DiagramGenerator {
      * Draws the conductor dot in the center
      */
     private drawConductor(): void {
+        if (!G_settings.conductorEnabled) return;
         let style = this.style.noStroke;
         style.fill = G_settings.conductorColor;
         this.svg.addCircle(
@@ -142,15 +133,24 @@ class DiagramGenerator {
         let x = config.diagramSettings.paddingSide;
         const width = this.xSize / 2 - config.diagramSettings.paddingSide;
         const height = config.diagramSettings.tableHeight;
-        for (let row of G_settings.rows) {
-            for (let reg of row.registers) {
+        for (let i = 0; i < G_settings.rows.length; i++) {
+            for (let j = 0; j < G_settings.rows[i].registers.length; j++) {
+                let reg = G_settings.rows[i].registers[j];
+                if (reg.linked !== "-1:-1") continue;
                 let color = reg.color;
                 let style = this.style.noStroke;
                 style.fill = color;
                 this.svg.addRectangle(x, y, width, height, style);
                 style = this.style.text;
                 style.fill = OGG_getTextColor(color);
-                this.svg.addText(x + 5, y + height / 2, `${reg.count}x ${reg.name}`, style);
+                let count = reg.count;
+                for (let k = 0; k < G_settings.rows.length; k++) {
+                    for (let l = 0; l < G_settings.rows[k].registers.length; l++) {
+                        let r = G_settings.rows[k].registers[l];
+                        if (r.linked === `${i}:${j}`) count += r.count;
+                    }
+                }
+                this.svg.addText(x + 5, y + height / 2, `${count}x ${reg.name}`, style);
                 y = x === config.diagramSettings.paddingSide ? y : y + height;
                 x =
                     x === config.diagramSettings.paddingSide
@@ -185,7 +185,7 @@ class DiagramGenerator {
         let lowest = 0;
         for (let row of G_settings.rows) {
             let left, right, leftAngle, rightAngle;
-            let players = this.getRowPlayers(row);
+            let players = OGG_getRowPlayers(row);
             if (players !== 0) {
                 let a = (row.leftAngleBorder ? 0.5 : 0) + (row.rightAngleBorder ? 0.5 : 0);
                 let distance = (row.leftAngle + row.rightAngle) / (players - a);
@@ -206,18 +206,11 @@ class DiagramGenerator {
             if (right > lowestRight) lowestRight = right;
         }
         lowest = lowestLeft > lowestRight ? lowestLeft : lowestRight;
-        return lowest > conductorPos ? lowest : conductorPos;
-    }
-
-    /**
-     * Counts the players in a row
-     * @param row row to count
-     * @returns count of players
-     */
-    private getRowPlayers(row: I_RowSettings): number {
-        let players = 0;
-        for (let reg of row.registers) players += reg.count;
-        return players;
+        return G_settings.conductorEnabled
+            ? lowest > conductorPos
+                ? lowest
+                : conductorPos
+            : lowest;
     }
 
     /**

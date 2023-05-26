@@ -1,5 +1,6 @@
 let G_settings: I_Settings = {
     rows: [],
+    conductorEnabled: true,
     conductorPos: 0,
     conductorSize: 20,
     conductorColor: "#aaaaaa",
@@ -12,6 +13,7 @@ let G_settings: I_Settings = {
 
 interface I_Settings {
     rows: Array<I_RowSettings>;
+    conductorEnabled: boolean;
     conductorPos: number;
     conductorSize: number;
     conductorColor: string;
@@ -35,8 +37,10 @@ interface I_RowSettings {
 }
 
 interface I_RegisterSettings {
+    linked: `${number}:${number}`;
     name: string;
     count: number;
     color: string;
     show: boolean;
+    showMove: boolean;
 }

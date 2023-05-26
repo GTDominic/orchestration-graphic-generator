@@ -1,6 +1,7 @@
 class FormGenerator {
     private html: HTMLHandler;
     private form: Array<I_HTML_tree> = [];
+    private redraw: boolean;
 
     // Old Attributes:
     private colorPickerIds: Array<string>;
@@ -124,7 +125,7 @@ class FormGenerator {
 
         let leftAngleBorder = this.html.addP(wrapper);
         let players = 0;
-        for(let reg of G_settings.rows[i].registers) players += reg.count;
+        for (let reg of G_settings.rows[i].registers) players += reg.count;
         this.html.addCheckbox(
             leftAngleBorder,
             checkCss,
@@ -230,6 +231,13 @@ class FormGenerator {
             i === G_settings.rows[row].registers.length - 1
         );
         this.html.addText(buttonDown, "&darr;");
+        let moveRow = this.html.addButton(
+            heading,
+            buttonHeaderCss,
+            `OG_openMoveList(${row}, ${i})`,
+            G_settings.rows.length <= 1
+        );
+        this.html.addText(moveRow, "Move to other row");
         let buttonShow = this.html.addButton(
             heading,
             buttonHeaderCss,
@@ -238,6 +246,13 @@ class FormGenerator {
         this.html.addText(buttonShow, r.show ? "Hide &and;" : "Show &or;");
         let headerTextSpan = this.html.addSpan(heading, `OG_Register_${row}:${i}_nameTag`);
         let headerText = r.name ? ` ${r.name}` : ` Register ${i + 1}`;
+        if (r.linked !== "-1:-1") {
+            let lc = r.linked.split(":");
+            let le = G_settings.rows[Number(lc[0])].registers[Number(lc[1])];
+            headerText = le.name
+                ? ` ${le.name}`
+                : ` Row: ${Number(lc[0]) + 1}, Register: ${Number(lc[1]) + 1}`;
+        }
         this.html.addText(headerTextSpan, headerText);
         buttonHeaderCss += " w3-right";
         let buttonX = this.html.addButton(
@@ -246,21 +261,70 @@ class FormGenerator {
             `OG_remove('Register',${row},${i})`
         );
         this.html.addText(buttonX, "X");
+
+        if (r.showMove) {
+            let showMove = this.html.addP(wrapper);
+            for (let j = 0; j < G_settings.rows.length; j++) {
+                if (j === row) continue;
+                let element = this.html.addButton(
+                    showMove,
+                    "w3-button w3-blue-grey",
+                    `OG_move('RegisterRow',${row},${j},${i})`
+                );
+                this.html.addText(element, `To Row: ${j + 1}`);
+            }
+            let element = this.html.addButton(
+                showMove,
+                "w3-button w3-blue-grey",
+                `OG_openMoveList(${row},${i})`
+            );
+            this.html.addText(element, "Close");
+        }
+
         if (!r.show) return;
+
+        let link = this.html.addP(wrapper);
+        this.html.addText(link, "Link to row:");
+        let linkSelect = this.html.addSelect(
+            link,
+            "w3-select",
+            `OG_Register_${row}:${i}_link`,
+            "Link to other register",
+            "OG_update(1)"
+        );
+        let linkSelectNone = this.html.addOption(linkSelect, "-1:-1", r.linked === "-1:-1");
+        this.html.addText(linkSelectNone, "None");
+        for (let j = 0; j < G_settings.rows.length; j++) {
+            if (j === row) continue;
+            for (let k = 0; k < G_settings.rows[j].registers.length; k++) {
+                if (G_settings.rows[j].registers[k].linked !== "-1:-1") continue;
+                let linkSelectElement = this.html.addOption(
+                    linkSelect,
+                    `${j}:${k}`,
+                    r.linked === `${j}:${k}`,
+                    this.checkLinkDisabled(row, i, j, k)
+                );
+                let e = G_settings.rows[j].registers[k];
+                let elementText = e.name ? e.name : `Row: ${j + 1}, Register: ${k + 1}`;
+                this.html.addText(linkSelectElement, elementText);
+            }
+        }
 
         let inputCss = "w3-input";
 
-        let name = this.html.addP(wrapper);
-        this.html.addText(name, "Name:");
-        this.html.addInput(
-            name,
-            "text",
-            inputCss,
-            `OG_Register_${row}:${i}_name`,
-            "Name Register",
-            r.name,
-            "OG_update()"
-        );
+        if (r.linked === "-1:-1") {
+            let name = this.html.addP(wrapper);
+            this.html.addText(name, "Name:");
+            this.html.addInput(
+                name,
+                "text",
+                inputCss,
+                `OG_Register_${row}:${i}_name`,
+                "Name Register",
+                r.name,
+                "OG_update()"
+            );
+        }
 
         let count = this.html.addP(wrapper);
         this.html.addText(count, "Count:");
@@ -275,7 +339,7 @@ class FormGenerator {
             false,
             1
         );
-        this.drawColorPicker(wrapper, 1, { row, register: i });
+        if (r.linked === "-1:-1") this.drawColorPicker(wrapper, 1, { row, register: i });
     }
 
     /**
@@ -335,6 +399,19 @@ class FormGenerator {
         let div = this.html.addDiv(context, "w3-panel w3-light-green w3-card-4");
         let heading = this.html.addHeader(3, div);
         this.html.addText(heading, "Conductor:");
+
+        let enabled = this.html.addP(div);
+        this.html.addCheckbox(
+            enabled,
+            "w3-check",
+            "OG_Conductor_Enabled",
+            "Enable Conductor",
+            "OG_update(1)",
+            G_settings.conductorEnabled
+        );
+        this.html.addText(enabled, " Enable conductor");
+
+        if (!G_settings.conductorEnabled) return;
 
         let position = this.html.addP(div);
         this.html.addText(position, "Position:");
@@ -469,13 +546,74 @@ class FormGenerator {
             "OG_update()",
             false,
             null,
-            {placeholder: "Add color"}
+            { placeholder: "Add color" }
         );
         let noteP = this.html.addP(context);
         this.html.addText(
             noteP,
             'Enter Colors as HTML Color Code (e.g. "#ffffff") in the format "#rrggbb".'
         );
+    }
+
+    /**
+     * Open/Close the move list on a register
+     * @param row row id
+     * @param reg register id
+     */
+    public openMoveList(row: number, reg: number): void {
+        G_settings.rows[row].registers[reg].showMove =
+            !G_settings.rows[row].registers[reg].showMove;
+        this.draw();
+    }
+
+    /**
+     * Checks wether linking is disabled
+     * @param fromRow row of the element to link
+     * @param fromReg register of the element to link
+     * @param withRow row of the element the register is to be linked with
+     * @param withReg register of the element the register is to be linked with
+     * @param skipRowCheck skips check for multiple links in same row
+     * @returns true === disabled; false === enabled
+     */
+    private checkLinkDisabled(
+        fromRow: number,
+        fromReg: number,
+        withRow: number,
+        withReg: number,
+        skipRowCheck: boolean = false
+    ): boolean {
+        // Check rows touching === linked
+        if (fromRow > withRow) {
+            if (!G_settings.rows[fromRow].linked) return true;
+        } else {
+            if (!G_settings.rows[withRow].linked) return true;
+        }
+        if (!skipRowCheck) {
+            let found = false;
+            for (let reg of G_settings.rows[fromRow].registers)
+                if (reg.linked === `${withRow}:${withReg}`) found = true;
+            if (found) return true;
+        }
+        if (fromRow !== withRow + 1 && fromRow !== withRow - 1) {
+            let nextRow = G_settings.rows[fromRow > withRow ? fromRow - 1 : fromRow + 1];
+            let elinked: number = null;
+            for (let i = 0; i < nextRow.registers.length; i++) {
+                if (nextRow.registers[i].linked === `${withRow}:${withReg}`) elinked = i;
+            }
+            if (elinked === null) return true;
+            withRow = fromRow > withRow ? fromRow - 1 : fromRow + 1;
+            withReg = elinked;
+        }
+
+        let borders1 = OGG_getBorderPlayerAngles(G_settings.rows[fromRow]).border;
+        let borders2 = OGG_getBorderPlayerAngles(G_settings.rows[withRow]).border;
+
+        let lbf = borders1[fromReg];
+        let rbf = borders1[fromReg + 1];
+        let lbw = borders2[withReg];
+        let rbw = borders2[withReg + 1];
+
+        return rbw < lbf || rbf < lbw;
     }
 
     // Old Functions:
@@ -485,10 +623,11 @@ class FormGenerator {
      * @param mode 1 for full update (redraw) | 0 for light update (only updates settings object)
      */
     public update(mode: 0 | 1): void {
+        this.redraw = mode === 1 ? true : false;
         for (let i = 0; i < G_settings.rows.length; i++) this.updateRow(i);
         this.updateSettings();
         if (config.environment === "dev" && config.debug) console.log(G_settings);
-        if (mode === 1) this.draw();
+        if (this.redraw) this.draw();
     }
 
     /**
@@ -511,7 +650,10 @@ class FormGenerator {
                 G_settings.rows.length === 0
                     ? 90
                     : G_settings.rows[G_settings.rows.length - 1].rightAngle;
-            let sync = G_settings.rows.length === 0 ? true : G_settings.rows[G_settings.rows.length - 1].sync;
+            let sync =
+                G_settings.rows.length === 0
+                    ? true
+                    : G_settings.rows[G_settings.rows.length - 1].sync;
             G_settings.rows.push({
                 radius,
                 linked,
@@ -524,17 +666,21 @@ class FormGenerator {
                 registers: [],
             });
             G_settings.rows[G_settings.rows.length - 1].registers.push({
+                linked: "-1:-1",
                 name: "",
                 count: 1,
                 show: true,
+                showMove: false,
                 color: "#000000",
             });
             this.assignDefaultColor(G_settings.rows.length - 1, 0);
         } else {
             G_settings.rows[row].registers.push({
+                linked: "-1:-1",
                 name: "",
                 count: 1,
                 show: true,
+                showMove: false,
                 color: "#000000",
             });
             this.assignDefaultColor(row, G_settings.rows[row].registers.length - 1);
@@ -587,12 +733,26 @@ class FormGenerator {
 
     /**
      * Moves a Row or Register from one place to another (registers cannot jump rows)
-     * @param type "Row" | "Register"
+     * @param type "Row" | "Register" | "RegisterRow"
      * @param from fromId
      * @param to toId
-     * @param row If "Register" defines the row where the register is moved in
+     * @param additional If "Register" defines the row where the register is moved in
+     *                   If "RegisterRow" defines the register to move
      */
-    public move(type: "Row" | "Register", from: number, to: number, row: number) {
+    public move(
+        type: "Row" | "Register" | "RegisterRow",
+        from: number,
+        to: number,
+        additional: number
+    ) {
+        if (type === "RegisterRow") {
+            this.openMoveList(from, additional);
+            let r = G_settings.rows[from].registers.splice(additional, 1)[0];
+            G_settings.rows[to].registers.push(r);
+            this.draw();
+            this.updateRow(from);
+            return;
+        }
         let r: Array<I_RegisterSettings | I_RowSettings>;
         let r1: number, r2: number, l1: boolean, l2: boolean;
         if (type === "Row") {
@@ -602,7 +762,7 @@ class FormGenerator {
             l1 = (<I_RowSettings>r[from]).linked;
             l2 = (<I_RowSettings>r[to]).linked;
         } else {
-            r = G_settings.rows[row].registers;
+            r = G_settings.rows[additional].registers;
         }
         let temp = r[from];
         r[from] = r[to];
@@ -703,8 +863,8 @@ class FormGenerator {
         }
         for (let i = 0; i < r.registers.length; i++) this.updateRegister(i, id);
         let players = 0;
-        for(let reg of G_settings.rows[id].registers) players += reg.count;
-        if(players <= 1) {
+        for (let reg of G_settings.rows[id].registers) players += reg.count;
+        if (players <= 1) {
             r.leftAngleBorder = false;
             leftTypeElement.checked = false;
             r.rightAngleBorder = false;
@@ -720,19 +880,39 @@ class FormGenerator {
      * @param row Row that the register is in
      */
     private updateRegister(id: number, row: number): void {
-        this.updateColorPicker(1, { row, register: id });
         let r = G_settings.rows[row].registers[id];
+        if (r.linked !== "-1:-1") {
+            let lrow = Number(r.linked.split(":")[0]);
+            let lreg = Number(r.linked.split(":")[1]);
+            if (this.checkLinkDisabled(row, id, lrow, lreg)) {
+                r.linked = "-1:-1";
+                this.redraw = true;
+            }
+        }
         if (!r.show) return;
-        let nameElement = <HTMLInputElement>(
-            document.getElementById(`OG_Register_${row}:${id}_name`)
+        if (r.linked === "-1:-1") {
+            this.updateColorPicker(1, { row, register: id });
+            let nameElement = <HTMLInputElement>(
+                document.getElementById(`OG_Register_${row}:${id}_name`)
+            );
+            r.name = this.sanitizeString(nameElement.value);
+            document.getElementById(`OG_Register_${row}:${id}_nameTag`).innerHTML = r.name
+                ? ` ${r.name}`
+                : ` Register ${id + 1}`;
+        }
+        let linkedElement = <HTMLInputElement>(
+            document.getElementById(`OG_Register_${row}:${id}_link`)
         );
+        r.linked = <`${number}:${number}`>linkedElement.value;
+        let lirow = Number(r.linked.split(":")[0]);
+        let lireg = Number(r.linked.split(":")[1]);
+        if (lirow !== -1 && lireg !== -1) {
+            if (this.checkLinkDisabled(row, id, lirow, lireg, true)) r.linked = "-1:-1";
+            this.redraw = true;
+        }
         let countElement = <HTMLInputElement>(
             document.getElementById(`OG_Register_${row}:${id}_count`)
         );
-        r.name = this.sanitizeString(nameElement.value);
-        document.getElementById(`OG_Register_${row}:${id}_nameTag`).innerHTML = r.name
-            ? ` ${r.name}`
-            : ` Register ${id + 1}`;
         r.count = this.handleNumber(countElement);
     }
 
@@ -754,6 +934,10 @@ class FormGenerator {
      * Updates the settings for the conductor
      */
     private updateSettingsConductor(): void {
+        let enabledElement = <HTMLInputElement>document.getElementById("OG_Conductor_Enabled");
+        let oldEnabled = G_settings.conductorEnabled;
+        G_settings.conductorEnabled = enabledElement.checked;
+        if (!G_settings.conductorEnabled || !oldEnabled) return;
         let color = this.updateColorPicker(2, { id: "conductor" });
         if (color) G_settings.conductorColor = color;
         let posElement = <HTMLInputElement>document.getElementById("OG_Conductor_Pos");
@@ -821,6 +1005,7 @@ class FormGenerator {
             for (let j = 0; j < G_settings.rows[i].registers.length; j++) {
                 let reg = G_settings.rows[i].registers[j];
                 if (!reg.show) continue;
+                if (reg.linked !== "-1:-1") continue;
                 form = "";
                 for (let k = 0; k < G_settings.colorPalette.length; k++) {
                     let color = G_settings.colorPalette[k];
@@ -829,9 +1014,7 @@ class FormGenerator {
                         color
                     )}">${color}</div>`;
                 }
-                document.getElementById(
-                    `OG_Register_${i}:${j}_colorList`
-                ).innerHTML = form;
+                document.getElementById(`OG_Register_${i}:${j}_colorList`).innerHTML = form;
             }
         }
         for (let id of this.colorPickerIds) {
