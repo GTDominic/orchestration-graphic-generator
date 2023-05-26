@@ -897,6 +897,12 @@ class FormGenerator {
             document.getElementById(`OG_Register_${row}:${id}_link`)
         );
         r.linked = <`${number}:${number}`>linkedElement.value;
+        let lirow = Number(r.linked.split(":")[0]);
+        let lireg = Number(r.linked.split(":")[1]);
+        if(lirow !== -1 && lireg !== -1) {
+            if(this.checkLinkDisabled(row, id, lirow, lireg)) r.linked = "-1:-1";
+            this.redraw = true;
+        }
         let countElement = <HTMLInputElement>(
             document.getElementById(`OG_Register_${row}:${id}_count`)
         );
