@@ -297,7 +297,7 @@ class FormGenerator {
         for (let j = 0; j < G_settings.rows.length; j++) {
             if (j === row) continue;
             for (let k = 0; k < G_settings.rows[j].registers.length; k++) {
-                if(G_settings.rows[j].registers[k].linked !== "-1:-1") continue;
+                if (G_settings.rows[j].registers[k].linked !== "-1:-1") continue;
                 let linkSelectElement = this.html.addOption(
                     linkSelect,
                     `${j}:${k}`,
@@ -572,13 +572,15 @@ class FormGenerator {
      * @param fromReg register of the element to link
      * @param withRow row of the element the register is to be linked with
      * @param withReg register of the element the register is to be linked with
+     * @param skipRowCheck skips check for multiple links in same row
      * @returns true === disabled; false === enabled
      */
     private checkLinkDisabled(
         fromRow: number,
         fromReg: number,
         withRow: number,
-        withReg: number
+        withReg: number,
+        skipRowCheck: boolean = false
     ): boolean {
         // Check rows touching === linked
         if (fromRow > withRow) {
@@ -586,18 +588,23 @@ class FormGenerator {
         } else {
             if (!G_settings.rows[withRow].linked) return true;
         }
-        // TODO: check to not allow two links on same row
+        if (!skipRowCheck) {
+            let found = false;
+            for (let reg of G_settings.rows[fromRow].registers)
+                if (reg.linked === `${withRow}:${withReg}`) found = true;
+            if (found) return true;
+        }
         if (fromRow !== withRow + 1 && fromRow !== withRow - 1) {
             let nextRow = G_settings.rows[fromRow > withRow ? fromRow - 1 : fromRow + 1];
             let elinked: number = null;
-            for(let i = 0; i < nextRow.registers.length; i++) {
-                if(nextRow.registers[i].linked === `${withRow}:${withReg}`) elinked = i;
+            for (let i = 0; i < nextRow.registers.length; i++) {
+                if (nextRow.registers[i].linked === `${withRow}:${withReg}`) elinked = i;
             }
-            if(elinked === null) return true;
+            if (elinked === null) return true;
             withRow = fromRow > withRow ? fromRow - 1 : fromRow + 1;
             withReg = elinked;
         }
-        
+
         let borders1 = OGG_getBorderPlayerAngles(G_settings.rows[fromRow]).border;
         let borders2 = OGG_getBorderPlayerAngles(G_settings.rows[withRow]).border;
 
@@ -877,7 +884,7 @@ class FormGenerator {
         if (r.linked !== "-1:-1") {
             let lrow = Number(r.linked.split(":")[0]);
             let lreg = Number(r.linked.split(":")[1]);
-            if(this.checkLinkDisabled(row, id, lrow, lreg)) {
+            if (this.checkLinkDisabled(row, id, lrow, lreg)) {
                 r.linked = "-1:-1";
                 this.redraw = true;
             }
@@ -899,8 +906,8 @@ class FormGenerator {
         r.linked = <`${number}:${number}`>linkedElement.value;
         let lirow = Number(r.linked.split(":")[0]);
         let lireg = Number(r.linked.split(":")[1]);
-        if(lirow !== -1 && lireg !== -1) {
-            if(this.checkLinkDisabled(row, id, lirow, lireg)) r.linked = "-1:-1";
+        if (lirow !== -1 && lireg !== -1) {
+            if (this.checkLinkDisabled(row, id, lirow, lireg, true)) r.linked = "-1:-1";
             this.redraw = true;
         }
         let countElement = <HTMLInputElement>(
