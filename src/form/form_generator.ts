@@ -248,7 +248,9 @@ class FormGenerator {
         if (r.linked) {
             let lc = r.linked.split(":");
             let le = G_settings.rows[Number(lc[0])].registers[Number(lc[1])];
-            headerText = le.name ? ` ${le.name}` : ` Row: ${Number(lc[0]) + 1}, Register: ${Number(lc[1]) + 1}`;
+            headerText = le.name
+                ? ` ${le.name}`
+                : ` Row: ${Number(lc[0]) + 1}, Register: ${Number(lc[1]) + 1}`;
         }
         this.html.addText(headerTextSpan, headerText);
         buttonHeaderCss += " w3-right";
@@ -298,7 +300,7 @@ class FormGenerator {
                     linkSelect,
                     `${j}:${k}`,
                     r.linked === `${j}:${k}`,
-                    false
+                    this.checkLinkDisabled(row, i, j, k)
                 );
                 let e = G_settings.rows[j].registers[k];
                 let elementText = e.name ? e.name : `Row: ${j + 1}, Register: ${k + 1}`;
@@ -560,6 +562,39 @@ class FormGenerator {
         G_settings.rows[row].registers[reg].showMove =
             !G_settings.rows[row].registers[reg].showMove;
         this.draw();
+    }
+
+    /**
+     * Checks wether linking is disabled
+     * @param fromRow row of the element to link
+     * @param fromReg register of the element to link
+     * @param withRow row of the element the register is to be linked with
+     * @param withReg register of the element the register is to be linked with
+     * @returns true === disabled; false === enabled
+     */
+    private checkLinkDisabled(
+        fromRow: number,
+        fromReg: number,
+        withRow: number,
+        withReg: number
+    ): boolean {
+        // Check rows touching === linked
+        if (fromRow !== withRow + 1 && fromRow !== withRow - 1) return true;
+        if (fromRow > withRow) {
+            if (!G_settings.rows[fromRow].linked) return true;
+        } else {
+            if (!G_settings.rows[withRow].linked) return true;
+        }
+
+        let borders1 = OGG_getBorderPlayerAngles(G_settings.rows[fromRow]).border;
+        let borders2 = OGG_getBorderPlayerAngles(G_settings.rows[withRow]).border;
+
+        let lbf = borders1[fromReg];
+        let rbf = borders1[fromReg + 1];
+        let lbw = borders2[withReg];
+        let rbw = borders2[withReg + 1];
+
+        return rbw < lbf || rbf < lbw;
     }
 
     // Old Functions:

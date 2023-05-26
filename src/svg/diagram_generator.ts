@@ -77,25 +77,11 @@ class DiagramGenerator {
      * @param row The row that is added
      */
     private drawRegisters(row: I_RowSettings): void {
-        let players = this.getRowPlayers(row);
+        let players = OGG_getRowPlayers(row);
         if (players === 0) return;
-        let playerAngles: Array<number> = [];
-        let borderAngles: Array<number> = [];
-        let a = (row.leftAngleBorder ? 0.5 : 0) + (row.rightAngleBorder ? 0.5 : 0);
-        let distance = (row.leftAngle + row.rightAngle) / (players - a);
-        let tempAngle = (row.leftAngleBorder ? 0 : distance / 2) - row.leftAngle;
-        for (let i = 0; i < players; i++) {
-            playerAngles.push(tempAngle);
-            tempAngle += distance;
-        }
-        if (config.environment === "dev" && config.debug) console.log(playerAngles);
-        tempAngle = -row.leftAngle - (row.leftAngleBorder ? distance / 2 : 0);
-        borderAngles.push(tempAngle);
-        for (let reg of row.registers) {
-            tempAngle += distance * reg.count;
-            borderAngles.push(tempAngle);
-        }
-        if (config.environment === "dev" && config.debug) console.log(borderAngles);
+        let borders = OGG_getBorderPlayerAngles(row);
+        let playerAngles: Array<number> = borders.player;
+        let borderAngles: Array<number> = borders.border;
         for (let i = 0; i < borderAngles.length - 1; i++) {
             let rO = row.radius + config.diagramSettings.registerPadding;
             let rI = row.radius - config.diagramSettings.registerPadding;
@@ -199,7 +185,7 @@ class DiagramGenerator {
         let lowest = 0;
         for (let row of G_settings.rows) {
             let left, right, leftAngle, rightAngle;
-            let players = this.getRowPlayers(row);
+            let players = OGG_getRowPlayers(row);
             if (players !== 0) {
                 let a = (row.leftAngleBorder ? 0.5 : 0) + (row.rightAngleBorder ? 0.5 : 0);
                 let distance = (row.leftAngle + row.rightAngle) / (players - a);
@@ -221,17 +207,6 @@ class DiagramGenerator {
         }
         lowest = lowestLeft > lowestRight ? lowestLeft : lowestRight;
         return lowest > conductorPos ? lowest : conductorPos;
-    }
-
-    /**
-     * Counts the players in a row
-     * @param row row to count
-     * @returns count of players
-     */
-    private getRowPlayers(row: I_RowSettings): number {
-        let players = 0;
-        for (let reg of row.registers) players += reg.count;
-        return players;
     }
 
     /**
