@@ -1,6 +1,7 @@
 class FormGenerator {
     private html: HTMLHandler;
     private form: Array<I_HTML_tree> = [];
+    private redraw: boolean;
 
     // Old Attributes:
     private colorPickerIds: Array<string>;
@@ -245,7 +246,7 @@ class FormGenerator {
         this.html.addText(buttonShow, r.show ? "Hide &and;" : "Show &or;");
         let headerTextSpan = this.html.addSpan(heading, `OG_Register_${row}:${i}_nameTag`);
         let headerText = r.name ? ` ${r.name}` : ` Register ${i + 1}`;
-        if (r.linked) {
+        if (r.linked !== "-1:-1") {
             let lc = r.linked.split(":");
             let le = G_settings.rows[Number(lc[0])].registers[Number(lc[1])];
             headerText = le.name
@@ -291,7 +292,7 @@ class FormGenerator {
             "Link to other register",
             "OG_update(1)"
         );
-        let linkSelectNone = this.html.addOption(linkSelect, "", r.linked === null);
+        let linkSelectNone = this.html.addOption(linkSelect, "-1:-1", r.linked === "-1:-1");
         this.html.addText(linkSelectNone, "None");
         for (let j = 0; j < G_settings.rows.length; j++) {
             if (j === row) continue;
@@ -310,7 +311,7 @@ class FormGenerator {
 
         let inputCss = "w3-input";
 
-        if (!r.linked) {
+        if (r.linked === "-1:-1") {
             let name = this.html.addP(wrapper);
             this.html.addText(name, "Name:");
             this.html.addInput(
@@ -337,7 +338,7 @@ class FormGenerator {
             false,
             1
         );
-        if (!r.linked) this.drawColorPicker(wrapper, 1, { row, register: i });
+        if (r.linked === "-1:-1") this.drawColorPicker(wrapper, 1, { row, register: i });
     }
 
     /**
@@ -604,10 +605,11 @@ class FormGenerator {
      * @param mode 1 for full update (redraw) | 0 for light update (only updates settings object)
      */
     public update(mode: 0 | 1): void {
+        this.redraw = mode === 1 ? true : false;
         for (let i = 0; i < G_settings.rows.length; i++) this.updateRow(i);
         this.updateSettings();
         if (config.environment === "dev" && config.debug) console.log(G_settings);
-        if (mode === 1) this.draw();
+        if (this.redraw) this.draw();
     }
 
     /**
@@ -646,7 +648,7 @@ class FormGenerator {
                 registers: [],
             });
             G_settings.rows[G_settings.rows.length - 1].registers.push({
-                linked: null,
+                linked: "-1:-1",
                 name: "",
                 count: 1,
                 show: true,
@@ -656,7 +658,7 @@ class FormGenerator {
             this.assignDefaultColor(G_settings.rows.length - 1, 0);
         } else {
             G_settings.rows[row].registers.push({
-                linked: null,
+                linked: "-1:-1",
                 name: "",
                 count: 1,
                 show: true,
@@ -861,6 +863,14 @@ class FormGenerator {
      */
     private updateRegister(id: number, row: number): void {
         let r = G_settings.rows[row].registers[id];
+        if (r.linked !== "-1:-1") {
+            let lrow = Number(r.linked.split(":")[0]);
+            let lreg = Number(r.linked.split(":")[1]);
+            if(this.checkLinkDisabled(row, id, lrow, lreg)) {
+                r.linked = "-1:-1";
+                this.redraw = true;
+            }
+        }
         if (!r.show) return;
         if (!r.linked) {
             this.updateColorPicker(1, { row, register: id });

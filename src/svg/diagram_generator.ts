@@ -93,7 +93,7 @@ class DiagramGenerator {
             let d = `M${p1.x} ${p1.y} A${rO} ${rO} 0 ${over} 1 ${p2.x} ${p2.y} 
                 L${p3.x} ${p3.y} A${rI} ${rI} 0 ${over} 0 ${p4.x} ${p4.y} Z`;
             let color = row.registers[i].color;
-            if (row.registers[i].linked) {
+            if (row.registers[i].linked !== "-1:-1") {
                 let lc = row.registers[i].linked.split(":");
                 color = G_settings.rows[Number(lc[0])].registers[Number(lc[1])].color;
             }
