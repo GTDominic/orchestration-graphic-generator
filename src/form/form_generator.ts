@@ -1002,6 +1002,7 @@ class FormGenerator {
         }
         document.getElementById("OG_Color_List").innerHTML = form;
         for (let i = 0; i < G_settings.rows.length; i++) {
+            if (!G_settings.rows[i].show) continue;
             for (let j = 0; j < G_settings.rows[i].registers.length; j++) {
                 let reg = G_settings.rows[i].registers[j];
                 if (!reg.show) continue;
